@@ -29,7 +29,7 @@ jobs:
           java -version 2>&1
 
       # ════════════════════════════════════════════════════════════
-      # 🛠️ Backup - تم إصلاحه بالكامل
+      # Backup - معالج الأخطاء بشكل صحيح
       # ════════════════════════════════════════════════════════════
       - name: Backup user custom Android files
         run: |
@@ -64,8 +64,6 @@ jobs:
           echo ""
           echo "=== Backup summary ==="
           find /tmp/backup -type f 2>/dev/null | head -30
-          
-          # ✅ صريح: مفيش فشل حتى لو في ملف ناقص
           exit 0
 
       - name: Generate fresh Android template
@@ -82,8 +80,6 @@ jobs:
             --platforms=android \
             --no-pub \
             template 2>&1 | tail -10
-          
-          echo "exit: $?"
 
       - name: Replace android/ with fresh template
         run: |
@@ -105,9 +101,6 @@ jobs:
           ls -la android/gradle/wrapper/
           exit 0
 
-      # ════════════════════════════════════════════════════════════
-      # 🛠️ Restore - تم إصلاحه أيضاً
-      # ════════════════════════════════════════════════════════════
       - name: Restore user customizations
         run: |
           for f in AndroidManifest.xml res kotlin java; do
@@ -226,31 +219,29 @@ jobs:
         run: |
           echo "═══ meta in pubspec.lock ═══"
           grep -A 3 "^  meta:" pubspec.lock || echo "not found"
-          echo ""
-          echo "═══ Other packages ═══"
-          grep -A 1 "^  pdf:\|^  printing:\|^  provider:\|^  shared_preferences:" pubspec.lock | head -20
           exit 0
 
       # ════════════════════════════════════════════════════════════
-      # 🚀 البناء - السجل محفوظ بشكل صحيح
+      # 🚀 خطوة البناء المُصلحة (باستخدام tee)
       # ════════════════════════════════════════════════════════════
       - name: 🚀 Build APK
         id: build
         run: |
-          # ✅ redirection بدل pipe — ده كان بيكسر السجل
-          flutter build apk --release --target-platform=android-arm --verbose > /tmp/build.log 2>&1
-          BUILD_EXIT=$?
+          # ✅ tee يطبع المخرجات live ويحفظها في نفس الوقت
+          flutter build apk --release --target-platform=android-arm 2>&1 | tee /tmp/build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          echo ""
+          echo "═══════════════════════════════════════"
           echo "Build exit code: $BUILD_EXIT"
+          echo "═══════════════════════════════════════"
           
           if [ $BUILD_EXIT -ne 0 ]; then
             echo ""
-            echo "═══════════════════════════════════════"
-            echo "❌ BUILD FAILED — آخر 100 سطر"
-            echo "═══════════════════════════════════════"
-            tail -100 /tmp/build.log
-            echo ""
-            echo "═══ Errors ═══"
+            echo "═══ ❌ BUILD FAILED — Errors ═══"
             grep -i -E "(error:|exception|FAILURE|caused by|specified language|> Could not|> Task .* FAILED)" /tmp/build.log | head -30
+            echo ""
+            echo "═══ Last 60 lines ═══"
+            tail -60 /tmp/build.log
           fi
           exit $BUILD_EXIT
 
