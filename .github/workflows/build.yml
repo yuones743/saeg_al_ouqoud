@@ -9,11 +9,7 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      # ════════════════════════════════════════════════════════════
-      # 1) الإعداد
-      # ════════════════════════════════════════════════════════════
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -21,7 +17,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Flutter 3.24.5 (Dart 3.5 — يحل كل مشاكل التوافق)
+      - name: Setup Flutter 3.24.5
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
@@ -29,31 +25,49 @@ jobs:
 
       - name: Verify environment
         run: |
-          echo "=== Flutter ==="
           flutter --version
-          echo ""
-          echo "=== Java ==="
           java -version 2>&1
 
       # ════════════════════════════════════════════════════════════
-      # 2) نسخ احتياطي للملفات المخصصة
+      # 🛠️ Backup - تم إصلاحه بالكامل
       # ════════════════════════════════════════════════════════════
       - name: Backup user custom Android files
         run: |
           mkdir -p /tmp/backup
+          
           if [ -d android ]; then
             cd android
-            [ -f app/src/main/AndroidManifest.xml ] && cp app/src/main/AndroidManifest.xml /tmp/backup/ && echo "✅ AndroidManifest.xml"
-            [ -d app/src/main/res ] && cp -r app/src/main/res /tmp/backup/ && echo "✅ res/"
-            [ -d app/src/main/kotlin ] && cp -r app/src/main/kotlin /tmp/backup/ && echo "✅ kotlin/"
-            [ -d app/src/main/java ] && cp -r app/src/main/java /tmp/backup/ && echo "✅ java/"
+            
+            if [ -f app/src/main/AndroidManifest.xml ]; then
+              cp app/src/main/AndroidManifest.xml /tmp/backup/
+              echo "✅ AndroidManifest.xml"
+            fi
+            
+            if [ -d app/src/main/res ]; then
+              cp -r app/src/main/res /tmp/backup/
+              echo "✅ res/"
+            fi
+            
+            if [ -d app/src/main/kotlin ]; then
+              cp -r app/src/main/kotlin /tmp/backup/
+              echo "✅ kotlin/"
+            fi
+            
+            if [ -d app/src/main/java ]; then
+              cp -r app/src/main/java /tmp/backup/
+              echo "✅ java/"
+            fi
           else
-            echo "ℹ️  No existing android/"
+            echo "ℹ️  No android/ folder to back up"
           fi
+          
+          echo ""
+          echo "=== Backup summary ==="
+          find /tmp/backup -type f 2>/dev/null | head -30
+          
+          # ✅ صريح: مفيش فشل حتى لو في ملف ناقص
+          exit 0
 
-      # ════════════════════════════════════════════════════════════
-      # 3) توليد android/ نظيف بقالب Flutter 3.24.5
-      # ════════════════════════════════════════════════════════════
       - name: Generate fresh Android template
         run: |
           PROJECT_NAME=$(grep "^name:" pubspec.yaml | awk '{print $2}' | tr -d '\r')
@@ -68,15 +82,17 @@ jobs:
             --platforms=android \
             --no-pub \
             template 2>&1 | tail -10
+          
+          echo "exit: $?"
 
       - name: Replace android/ with fresh template
         run: |
           cd "$GITHUB_WORKSPACE"
+          
           rm -rf android
           cp -r "$HOME/template/android" ./android
           chmod +x android/gradlew
           
-          # local.properties بالمسار الصحيح
           cat > android/local.properties << EOF
           sdk.dir=$ANDROID_SDK_ROOT
           flutter.sdk=$FLUTTER_ROOT
@@ -87,28 +103,36 @@ jobs:
           
           echo "✅ New android/ ready"
           ls -la android/gradle/wrapper/
+          exit 0
 
       # ════════════════════════════════════════════════════════════
-      # 4) استرجاع الملفات المخصصة
+      # 🛠️ Restore - تم إصلاحه أيضاً
       # ════════════════════════════════════════════════════════════
       - name: Restore user customizations
         run: |
           for f in AndroidManifest.xml res kotlin java; do
             SRC="/tmp/backup/$f"
             DEST="android/app/src/main/$f"
-            [ ! -e "$SRC" ] && continue
+            
+            if [ ! -e "$SRC" ]; then
+              continue
+            fi
+            
             if [ -d "$SRC" ]; then
               mkdir -p "$DEST"
-              cp -rn "$SRC"/* "$DEST/" 2>/dev/null || true
+              cp -rn "$SRC"/* "$DEST/" 2>/dev/null
+              echo "✅ Restored folder: $f"
             else
               cp "$SRC" "$DEST"
+              echo "✅ Restored file: $f"
             fi
-            echo "✅ Restored: $f"
           done
+          
+          echo ""
+          echo "=== app/src/main/ contents ==="
+          ls -la android/app/src/main/
+          exit 0
 
-      # ════════════════════════════════════════════════════════════
-      # 5) تكوين Samsung A11 (API 21 + ARM 32-bit)
-      # ════════════════════════════════════════════════════════════
       - name: Configure for Samsung A11
         run: |
           cat > android/gradle.properties << 'GRADLE_PROPS_EOF'
@@ -184,36 +208,36 @@ jobs:
           }
           BUILD_GRADLE_EOF
           
-          echo "✅ Configured for A11"
+          echo "✅ Configured for Samsung A11"
+          exit 0
 
-      # ════════════════════════════════════════════════════════════
-      # 6) حذف pubspec.lock القديم وتنظيف الكاش
-      # ════════════════════════════════════════════════════════════
       - name: Clean lock & cache
         run: |
           rm -f pubspec.lock
           rm -rf ~/.pub-cache/hosted/pub.dev/meta-*
           flutter clean
           echo "✅ Cleaned"
+          exit 0
 
-      # ════════════════════════════════════════════════════════════
-      # 7) تحميل التبعيات
-      # ════════════════════════════════════════════════════════════
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Verify pubspec.lock has good versions
+      - name: Verify package versions
         run: |
-          echo "═══ meta version ═══"
+          echo "═══ meta in pubspec.lock ═══"
           grep -A 3 "^  meta:" pubspec.lock || echo "not found"
+          echo ""
+          echo "═══ Other packages ═══"
+          grep -A 1 "^  pdf:\|^  printing:\|^  provider:\|^  shared_preferences:" pubspec.lock | head -20
+          exit 0
 
       # ════════════════════════════════════════════════════════════
-      # 8) البناء — مع التقاط السجل بشكل صحيح (بدون pipe مشكلة)
+      # 🚀 البناء - السجل محفوظ بشكل صحيح
       # ════════════════════════════════════════════════════════════
       - name: 🚀 Build APK
         id: build
         run: |
-          # ✅ استخدام redirection بدل pipe — لحل مشكلة اختفاء السجل
+          # ✅ redirection بدل pipe — ده كان بيكسر السجل
           flutter build apk --release --target-platform=android-arm --verbose > /tmp/build.log 2>&1
           BUILD_EXIT=$?
           echo "Build exit code: $BUILD_EXIT"
@@ -225,7 +249,7 @@ jobs:
             echo "═══════════════════════════════════════"
             tail -100 /tmp/build.log
             echo ""
-            echo "═══ Errors found ═══"
+            echo "═══ Errors ═══"
             grep -i -E "(error:|exception|FAILURE|caused by|specified language|> Could not|> Task .* FAILED)" /tmp/build.log | head -30
           fi
           exit $BUILD_EXIT
@@ -238,9 +262,6 @@ jobs:
           path: /tmp/build.log
           if-no-files-found: ignore
 
-      # ════════════════════════════════════════════════════════════
-      # 9) التحقق والرفع
-      # ════════════════════════════════════════════════════════════
       - name: Verify APK
         if: success()
         run: |
