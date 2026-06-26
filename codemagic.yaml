@@ -6,6 +6,6 @@ workflows:
     scripts:
       - rm -f pubspec.lock
       - flutter pub get
-      - flutter build apk --split-per-abi
+      - flutter build apk
     artifacts:
-      - build/app/outputs/apk/**/*.apk
+      - build/app/outputs/flutter-apk/app-release.apk
