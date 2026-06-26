@@ -4,6 +4,7 @@ workflows:
     environment:
       flutter: stable
     scripts:
+      - rm -f pubspec.lock   # <--- أضف هذا السطر
       - flutter pub get
       - flutter build apk --split-per-abi
     artifacts:
