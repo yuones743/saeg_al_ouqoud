@@ -21,7 +21,8 @@ class FontService {
   }
 
   static Future<FontLoader> loadSelectedFont() async {
-    final loader = FontLoader(SystemConfig.contractFontName);
+    // ✅ تم التصحيح: استخدام contractFontDisplayName بدلاً من contractFontName
+    final loader = FontLoader(SystemConfig.contractFontDisplayName);
     try {
       loader.addFont(rootBundle.load(SystemConfig.contractFontAssetPath));
       if (SystemConfig.contractFontBoldAssetPath != SystemConfig.contractFontAssetPath) {
