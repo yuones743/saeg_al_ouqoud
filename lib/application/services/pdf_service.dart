@@ -35,7 +35,6 @@ class PdfService {
     }
   }
 
-  // ✅ تم إصلاح هذه الدالة بإضافة default
   PdfPageFormat _pdfPageFormat() {
     switch (SystemConfig.pageFormat) {
       case ContractPageFormat.a4:
@@ -45,7 +44,7 @@ class PdfService {
       case ContractPageFormat.letter:
         return PdfPageFormat.letter;
       default:
-        return PdfPageFormat.a4; // <--- إصلاح الخطأ
+        return PdfPageFormat.a4;
     }
   }
 
@@ -60,7 +59,7 @@ class PdfService {
       pw.MultiPage(
         theme: theme,
         pageFormat: pageFormat,
-        textDirection: pw.TextDirection.rtl, // ✅ MultiPage يقبل textDirection
+        textDirection: pw.TextDirection.rtl,
         margin: pw.EdgeInsets.fromLTRB(2.5 * PdfPageFormat.cm, 2.5 * PdfPageFormat.cm, 2.5 * PdfPageFormat.cm, 2.5 * PdfPageFormat.cm),
         build: (context) => _buildContent(contract, blankTemplate),
         header: (context) => _buildHeader(blankTemplate),
@@ -77,7 +76,6 @@ class PdfService {
     return file;
   }
 
-  // ✅ تم إصلاح _buildHeader: استخدام Directionality حول Column
   pw.Widget _buildHeader(bool blank) {
     return pw.Container(
       decoration: const pw.BoxDecoration(
@@ -100,7 +98,6 @@ class PdfService {
     );
   }
 
-  // ✅ تم إصلاح _buildFooter: استخدام Directionality حول Text
   pw.Widget _buildFooter(pw.Context context) {
     return pw.Container(
       decoration: const pw.BoxDecoration(
@@ -193,7 +190,6 @@ class PdfService {
     }
   }
 
-  // ✅ تم إصلاح _title: استخدام Directionality حول Text
   pw.Widget _title(String text, double size) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 8),
     child: pw.Directionality(
@@ -202,7 +198,6 @@ class PdfService {
     ),
   );
 
-  // ✅ تم إصلاح _sectionTitle
   pw.Widget _sectionTitle(String text) => pw.Padding(
     padding: const pw.EdgeInsets.only(top: 10, bottom: 4),
     child: pw.Directionality(
@@ -211,7 +206,6 @@ class PdfService {
     ),
   );
 
-  // ✅ تم إصلاح _text
   pw.Widget _text(String text) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 3),
     child: pw.Directionality(
@@ -220,7 +214,6 @@ class PdfService {
     ),
   );
 
-  // ✅ تم إصلاح _bullet: إزالة textDirection من pw.Text ووضع Directionality
   pw.Widget _bullet(String text) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
     child: pw.Row(
@@ -390,7 +383,6 @@ class PdfService {
     }
   }
 
-  // ✅ تم إصلاح _legalNotice
   pw.Widget _legalNotice() => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 6),
     child: pw.Directionality(
@@ -399,7 +391,6 @@ class PdfService {
     ),
   );
 
-  // ✅ تم إصلاح _signaturesBlock: إزالة textDirection من pw.Row و pw.Text
   pw.Widget _signaturesBlock(Contract c, bool blank) {
     final sellerName = blank ? '___________' : (c.sellers.isNotEmpty ? c.sellers.first.fullName : '...');
     final buyerName = blank ? '___________' : (c.buyers.isNotEmpty ? c.buyers.first.fullName : '...');
@@ -432,7 +423,6 @@ class PdfService {
     );
   }
 
-  // ✅ تم إصلاح _signatureBox
   pw.Widget _signatureBox(String label) => pw.Container(
     width: 220, height: 100,
     decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
@@ -443,7 +433,6 @@ class PdfService {
     ),
   );
 
-  // ✅ تم إصلاح _annexBlock
   pw.Widget _annexBlock(ContractAnnex annex, bool blank) => pw.Column(
     children: [
       pw.SizedBox(height: 12),
