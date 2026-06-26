@@ -28,9 +28,6 @@ jobs:
           flutter --version
           java -version 2>&1
 
-      # ════════════════════════════════════════════════════════════
-      # Backup - معالج الأخطاء بشكل صحيح
-      # ════════════════════════════════════════════════════════════
       - name: Backup user custom Android files
         run: |
           mkdir -p /tmp/backup
@@ -126,6 +123,9 @@ jobs:
           ls -la android/app/src/main/
           exit 0
 
+      # ════════════════════════════════════════════════════════════
+      # ✅ تم إصلاح هذه الخطوة (حذف dependencies {} block)
+      # ════════════════════════════════════════════════════════════
       - name: Configure for Samsung A11
         run: |
           cat > android/gradle.properties << 'GRADLE_PROPS_EOF'
@@ -135,6 +135,7 @@ jobs:
           android.nonTransitiveRClass=true
           GRADLE_PROPS_EOF
 
+          # ✅ بدون dependencies {} block — Kotlin Gradle Plugin يتعامل معاها
           cat > android/app/build.gradle << 'BUILD_GRADLE_EOF'
           plugins {
               id "com.android.application"
@@ -195,13 +196,10 @@ jobs:
           flutter {
               source '../..'
           }
-
-          dependencies {
-              implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-          }
+          # ✅ مفيش dependencies {} block — اتشال
           BUILD_GRADLE_EOF
           
-          echo "✅ Configured for Samsung A11"
+          echo "✅ Configured for Samsung A11 (no kotlin_version needed)"
           exit 0
 
       - name: Clean lock & cache
@@ -222,12 +220,11 @@ jobs:
           exit 0
 
       # ════════════════════════════════════════════════════════════
-      # 🚀 خطوة البناء المُصلحة (باستخدام tee)
+      # 🚀 خطوة البناء (باستخدام tee لعرض السجل)
       # ════════════════════════════════════════════════════════════
       - name: 🚀 Build APK
         id: build
         run: |
-          # ✅ tee يطبع المخرجات live ويحفظها في نفس الوقت
           flutter build apk --release --target-platform=android-arm 2>&1 | tee /tmp/build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           echo ""
