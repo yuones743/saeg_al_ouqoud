@@ -35,11 +35,17 @@ class PdfService {
     }
   }
 
+  // ✅ تم إصلاح هذه الدالة بإضافة default
   PdfPageFormat _pdfPageFormat() {
     switch (SystemConfig.pageFormat) {
-      case ContractPageFormat.a4: return PdfPageFormat.a4;
-      case ContractPageFormat.a5: return PdfPageFormat.a5;
-      case ContractPageFormat.letter: return PdfPageFormat.letter;
+      case ContractPageFormat.a4:
+        return PdfPageFormat.a4;
+      case ContractPageFormat.a5:
+        return PdfPageFormat.a5;
+      case ContractPageFormat.letter:
+        return PdfPageFormat.letter;
+      default:
+        return PdfPageFormat.a4; // <--- إصلاح الخطأ
     }
   }
 
@@ -54,7 +60,7 @@ class PdfService {
       pw.MultiPage(
         theme: theme,
         pageFormat: pageFormat,
-        textDirection: pw.TextDirection.rtl,
+        textDirection: pw.TextDirection.rtl, // ✅ MultiPage يقبل textDirection
         margin: pw.EdgeInsets.fromLTRB(2.5 * PdfPageFormat.cm, 2.5 * PdfPageFormat.cm, 2.5 * PdfPageFormat.cm, 2.5 * PdfPageFormat.cm),
         build: (context) => _buildContent(contract, blankTemplate),
         header: (context) => _buildHeader(blankTemplate),
@@ -71,6 +77,7 @@ class PdfService {
     return file;
   }
 
+  // ✅ تم إصلاح _buildHeader: استخدام Directionality حول Column
   pw.Widget _buildHeader(bool blank) {
     return pw.Container(
       decoration: const pw.BoxDecoration(
@@ -81,15 +88,19 @@ class PdfService {
         ),
       ),
       padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-      child: pw.Column(
-        children: [
-          pw.Text(LegalPhrases.bismillah, textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
-          pw.Text(LegalPhrases.syria, textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
-        ],
+      child: pw.Directionality(
+        textDirection: pw.TextDirection.rtl,
+        child: pw.Column(
+          children: [
+            pw.Text(LegalPhrases.bismillah, textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Text(LegalPhrases.syria, textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
 
+  // ✅ تم إصلاح _buildFooter: استخدام Directionality حول Text
   pw.Widget _buildFooter(pw.Context context) {
     return pw.Container(
       decoration: const pw.BoxDecoration(
@@ -101,7 +112,10 @@ class PdfService {
       ),
       padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 6),
       alignment: pw.Alignment.center,
-      child: pw.Text('صائغ العقود السوري – صفحة ${context.pageNumber} من ${context.pagesCount}', style: const pw.TextStyle(fontSize: 9), textDirection: pw.TextDirection.rtl),
+      child: pw.Directionality(
+        textDirection: pw.TextDirection.rtl,
+        child: pw.Text('صائغ العقود السوري – صفحة ${context.pageNumber} من ${context.pagesCount}', style: const pw.TextStyle(fontSize: 9)),
+      ),
     );
   }
 
@@ -179,28 +193,49 @@ class PdfService {
     }
   }
 
+  // ✅ تم إصلاح _title: استخدام Directionality حول Text
   pw.Widget _title(String text, double size) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 8),
-    child: pw.Text(text, style: pw.TextStyle(fontSize: size, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center, textDirection: pw.TextDirection.rtl),
+    child: pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Text(text, style: pw.TextStyle(fontSize: size, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center),
+    ),
   );
 
+  // ✅ تم إصلاح _sectionTitle
   pw.Widget _sectionTitle(String text) => pw.Padding(
     padding: const pw.EdgeInsets.only(top: 10, bottom: 4),
-    child: pw.Text(text, style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold), textDirection: pw.TextDirection.rtl),
+    child: pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Text(text, style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
+    ),
   );
 
+  // ✅ تم إصلاح _text
   pw.Widget _text(String text) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 3),
-    child: pw.Text(text, style: const pw.TextStyle(fontSize: 12), textDirection: pw.TextDirection.rtl),
+    child: pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Text(text, style: const pw.TextStyle(fontSize: 12)),
+    ),
   );
 
+  // ✅ تم إصلاح _bullet: إزالة textDirection من pw.Text ووضع Directionality
   pw.Widget _bullet(String text) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
     child: pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('• ', style: const pw.TextStyle(fontSize: 12)),
-        pw.Expanded(child: pw.Text(text, style: const pw.TextStyle(fontSize: 12), textDirection: pw.TextDirection.rtl)),
+        pw.Directionality(
+          textDirection: pw.TextDirection.rtl,
+          child: pw.Text('• ', style: const pw.TextStyle(fontSize: 12)),
+        ),
+        pw.Expanded(
+          child: pw.Directionality(
+            textDirection: pw.TextDirection.rtl,
+            child: pw.Text(text, style: const pw.TextStyle(fontSize: 12)),
+          ),
+        ),
       ],
     ),
   );
@@ -355,11 +390,16 @@ class PdfService {
     }
   }
 
+  // ✅ تم إصلاح _legalNotice
   pw.Widget _legalNotice() => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 6),
-    child: pw.Text('تنبيه قانوني إلزامي: ${LegalPhrases.legalNotice}\n\n${LegalPhrases.twoCopies}', style: pw.TextStyle(fontSize: 11, fontStyle: pw.FontStyle.italic), textDirection: pw.TextDirection.rtl),
+    child: pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Text('تنبيه قانوني إلزامي: ${LegalPhrases.legalNotice}\n\n${LegalPhrases.twoCopies}', style: pw.TextStyle(fontSize: 11, fontStyle: pw.FontStyle.italic)),
+    ),
   );
 
+  // ✅ تم إصلاح _signaturesBlock: إزالة textDirection من pw.Row و pw.Text
   pw.Widget _signaturesBlock(Contract c, bool blank) {
     final sellerName = blank ? '___________' : (c.sellers.isNotEmpty ? c.sellers.first.fullName : '...');
     final buyerName = blank ? '___________' : (c.buyers.isNotEmpty ? c.buyers.first.fullName : '...');
@@ -369,19 +409,20 @@ class PdfService {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
-          textDirection: pw.TextDirection.rtl,
           children: [
             _signatureBox('الفريق الأول (البائع)\n$sellerName'),
             _signatureBox('الفريق الثاني (المشتري)\n$buyerName'),
           ],
         ),
         pw.SizedBox(height: 24),
-        pw.Text('الشهود:', textDirection: pw.TextDirection.rtl),
+        pw.Directionality(
+          textDirection: pw.TextDirection.rtl,
+          child: pw.Text('الشهود:'),
+        ),
         pw.SizedBox(height: 6),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
-          textDirection: pw.TextDirection.rtl,
           children: [
             _signatureBox(c.witnesses.isNotEmpty && !blank ? c.witnesses.first.fullName : '___________'),
             _signatureBox(c.witnesses.length > 1 && !blank ? c.witnesses[1].fullName : '___________'),
@@ -391,20 +432,28 @@ class PdfService {
     );
   }
 
+  // ✅ تم إصلاح _signatureBox
   pw.Widget _signatureBox(String label) => pw.Container(
     width: 220, height: 100,
     decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
     padding: const pw.EdgeInsets.all(8),
-    child: pw.Text(label, textDirection: pw.TextDirection.rtl, style: const pw.TextStyle(fontSize: 10)),
+    child: pw.Directionality(
+      textDirection: pw.TextDirection.rtl,
+      child: pw.Text(label, style: const pw.TextStyle(fontSize: 10)),
+    ),
   );
 
+  // ✅ تم إصلاح _annexBlock
   pw.Widget _annexBlock(ContractAnnex annex, bool blank) => pw.Column(
     children: [
       pw.SizedBox(height: 12),
       pw.Container(
         decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5, color: PdfColors.grey)),
         padding: const pw.EdgeInsets.all(6),
-        child: pw.Text('ملحق رقم ${annex.number}: ${annex.titleAr}', textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+        child: pw.Directionality(
+          textDirection: pw.TextDirection.rtl,
+          child: pw.Text('ملحق رقم ${annex.number}: ${annex.titleAr}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+        ),
       ),
       pw.SizedBox(height: 6),
       _text(blank ? '___________' : annex.bodyAr),
