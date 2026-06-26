@@ -65,7 +65,7 @@ class AboutScreen extends StatelessWidget {
                   _featureTile(Icons.font_download, '5 خطوط عربية'),
                   _featureTile(Icons.straighten, 'A4 / A5 / Letter'),
                   _featureTile(Icons.edit, 'قالب فارغ للكتابة بالقلم'),
-                  _featureTile(Icons.rtl_screenshot, 'دعم كامل لـ RTL'),
+                  _featureTile(Icons.text_fields, 'دعم كامل لـ RTL'), // ✅ تم التصحيح
                 ],
               ),
             ),
