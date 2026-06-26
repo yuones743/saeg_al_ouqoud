@@ -54,15 +54,12 @@ class ExportService {
     return file;
   }
 
-  // ✅ تم إصلاح هذه الدالة (استخدام await page.toImage() بدلاً من page.image)
   Future<File?> exportJpg(Contract contract) async {
     try {
       final pdfFile = await exportPdf(contract);
       final bytes = await pdfFile.readAsBytes();
-
-      // ✅ التغيير الأساسي: استخدام page.toImage() وهي async
       await for (final page in Printing.raster(bytes, dpi: 150)) {
-        final ui.Image img = await page.toImage(); // <--- الإصلاح هنا
+        final ui.Image img = await page.toImage();
         final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
         if (byteData == null) return null;
         final dir = await getApplicationDocumentsDirectory();
