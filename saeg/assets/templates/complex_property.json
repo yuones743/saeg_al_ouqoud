@@ -1,0 +1,1 @@
+{"id":"complex_property","version":"1.0","name":"محضر عقاري متعدد الوحدات","sections":[{"key":"owner","title":"المالك"},{"key":"building","title":"المبنى"},{"key":"units","title":"الوحدات"},{"key":"signatures","title":"التوقيعات"}]}

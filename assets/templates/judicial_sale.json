@@ -1,0 +1,12 @@
+{
+  "id": "judicial_sale",
+  "version": "1.0",
+  "name": "عقد بيع بموجب حكم قضائي",
+  "sections": [
+    {"key": "judgment", "title": "بيانات الحكم"},
+    {"key": "parties", "title": "الأطراف"},
+    {"key": "property", "title": "العقار"},
+    {"key": "price", "title": "الثمن"},
+    {"key": "signatures", "title": "التوقيعات"}
+  ]
+}

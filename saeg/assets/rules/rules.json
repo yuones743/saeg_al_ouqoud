@@ -1,0 +1,407 @@
+[
+  {
+    "id": "W001",
+    "version": "1.0",
+    "priority": 90,
+    "condition": {"type": "variable", "name": "seller_is_minor"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ١: البائع قاصر. يجب الحصول على إذن من القاضي أو ولي الأمر قبل البيع.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W002",
+    "version": "1.0",
+    "priority": 85,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {"type": "variable", "name": "seller_is_expatriate"},
+      "right": {
+        "type": "binary",
+        "op": "==",
+        "left": {"type": "variable", "name": "seller_has_power_of_attorney"},
+        "right": {"type": "value", "value": false}
+      }
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٢: البائع مغترب ولا يحمل وكالة. يجب إرفاق وكالة رسمية مصدّقة.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W003",
+    "version": "1.0",
+    "priority": 80,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {"type": "variable", "name": "seller_is_missing"},
+      "right": {
+        "type": "binary",
+        "op": "==",
+        "left": {"type": "variable", "name": "seller_has_judicial_representative"},
+        "right": {"type": "value", "value": false}
+      }
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٣: البائع مفقود ولا يوجد وكيل قضائي. يلزم تعيين وكيل قضائي.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W004",
+    "version": "1.0",
+    "priority": 85,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {
+        "type": "binary",
+        "op": "||",
+        "left": {"type": "variable", "name": "property_has_seizure"},
+        "right": {"type": "variable", "name": "property_has_mortgage"}
+      },
+      "right": {
+        "type": "binary",
+        "op": "==",
+        "left": {"type": "variable", "name": "property_has_release_letter"},
+        "right": {"type": "value", "value": false}
+      }
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٤: العقار محجوز أو مرهون ولا يوجد كتاب فك. يجب فك الحجز أو الرهن قبل البيع.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W005",
+    "version": "1.0",
+    "priority": 70,
+    "condition": {"type": "variable", "name": "inheritance_has_killer_heir"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٥: يوجد وارث قاتل للمورث. يحرم من الإرث شرعاً وقانوناً.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W006",
+    "version": "1.0",
+    "priority": 70,
+    "condition": {"type": "variable", "name": "inheritance_has_apostate_heir"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٦: يوجد وارث مرتد. الردة مانع من الإرث شرعاً.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W007",
+    "version": "1.0",
+    "priority": 75,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {"type": "variable", "name": "will_exceeds_third"},
+      "right": {
+        "type": "binary",
+        "op": "==",
+        "left": {"type": "variable", "name": "will_has_heir_consent"},
+        "right": {"type": "value", "value": false}
+      }
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٧: الوصية تتجاوز الثلث بدون موافقة الورثة. تُنفذ في حدود الثلث فقط.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W008",
+    "version": "1.0",
+    "priority": 80,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {"type": "variable", "name": "buyer_is_foreign"},
+      "right": {
+        "type": "binary",
+        "op": "==",
+        "left": {"type": "variable", "name": "buyer_has_foreign_license"},
+        "right": {"type": "value", "value": false}
+      }
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٨: المشتري غير سوري ولا يحمل ترخيص استثمار عقاري. يلزم الحصول على موافقة مجلس الاستثمار.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W009",
+    "version": "1.0",
+    "priority": 65,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {"type": "variable", "name": "property_has_active_lawsuit"},
+      "right": {
+        "type": "binary",
+        "op": "==",
+        "left": {"type": "variable", "name": "judgment_is_final"},
+        "right": {"type": "value", "value": false}
+      }
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ٩: العقار محكوم عليه بحكم غير مبرم. يُنتظر صدور حكم مبرم.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W010",
+    "version": "1.0",
+    "priority": 75,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {"type": "variable", "name": "agent_buys_for_self"},
+      "right": {
+        "type": "binary",
+        "op": "==",
+        "left": {"type": "variable", "name": "agent_has_self_buy_permission"},
+        "right": {"type": "value", "value": false}
+      }
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ١٠: الوكيل يشتري لنفسه بدون إذن صريح. يُفسخ العقد.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W011",
+    "version": "1.0",
+    "priority": 95,
+    "condition": {"type": "variable", "name": "seller_is_deceased"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ١١: وفاة البائع قبل التوقيع. لا يجوز البيع من المتوفى، يلزم محضر إرث.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W012",
+    "version": "1.0",
+    "priority": 70,
+    "condition": {
+      "type": "binary",
+      "op": "&&",
+      "left": {"type": "variable", "name": "buyer_is_minor"},
+      "right": {"type": "variable", "name": "property_has_seizure"}
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ١٢: بيع عقار محجوز لقاصر. مخالف لقانون حماية القاصرين.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W013",
+    "version": "1.0",
+    "priority": 70,
+    "condition": {"type": "variable", "name": "property_is_minors_dowry"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ١٣: العقار مهر/صداق لقاصر. يلزم موافقة الزوجة أو القاضي.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W014",
+    "version": "1.0",
+    "priority": 85,
+    "condition": {"type": "variable", "name": "property_is_endowment"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ١٤: العقار موقوف. لا يجوز بيعه شرعاً.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W015",
+    "version": "1.0",
+    "priority": 65,
+    "condition": {"type": "variable", "name": "property_is_violation"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تحذير ١٥: العقار مخالف للتنظيم. يُنصح بالتسوية قبل البيع.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W016",
+    "version": "1.0",
+    "priority": 40,
+    "condition": {
+      "type": "call",
+      "name": "isNotEmpty",
+      "args": [{"type": "variable", "name": "missing_optional_fields"}]
+    },
+    "action": {
+      "type": "info",
+      "severity": "info",
+      "message_ar": "تنبيه ١٦: توجد حقول اختيارية فارغة (يُفضل إكمالها).",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W017",
+    "version": "1.0",
+    "priority": 50,
+    "condition": {
+      "type": "call",
+      "name": "isNotEmpty",
+      "args": [{"type": "variable", "name": "missing_mandatory_fields"}]
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ١٧: توجد حقول إلزامية فارغة يجب تعبئتها قبل التوثيق.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W018",
+    "version": "1.0",
+    "priority": 60,
+    "condition": {"type": "variable", "name": "has_sham_indicators"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ١٨: مؤشرات الصورية (تعميم 2026). يلزم التحقق من جدية التعاقد.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W019",
+    "version": "1.0",
+    "priority": 55,
+    "condition": {"type": "variable", "name": "property_subject_to_investment_law"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ١٩: العقار خاضع لقانون الاستثمار. يلزم موافقة الهيئة العامة للاستثمار.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W020",
+    "version": "1.0",
+    "priority": 75,
+    "condition": {"type": "variable", "name": "has_pregnant_heir"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ٢٠: وجود وريث حامل. يجب تأجيل القسمة لحين الولادة.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W021",
+    "version": "1.0",
+    "priority": 75,
+    "condition": {"type": "variable", "name": "has_missing_heir"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ٢١: وجود وريث مفقود. يُودع نصيبه أمانة قضائية.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W022",
+    "version": "1.0",
+    "priority": 75,
+    "condition": {"type": "variable", "name": "has_prisoner_heir"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ٢٢: وجود وريث أسير. يحتاج تمثيلاً قانونياً.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W023",
+    "version": "1.0",
+    "priority": 75,
+    "condition": {"type": "variable", "name": "has_intersex_heir"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ٢٣: وجود وريث خنثى. يُحجز نصيب الأنثى ويوزع الزائد بعد التحديد الطبي.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W024",
+    "version": "1.0",
+    "priority": 80,
+    "condition": {"type": "variable", "name": "divorce_during_illness"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ٢٤: طلاق في مرض الموت. يحق للزوجة الرجعة والمطالبة بالميراث.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W025",
+    "version": "1.0",
+    "priority": 70,
+    "condition": {"type": "variable", "name": "is_kalala"},
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ٢٥: حالة كلالة (لا أولاد ولا والدين). تختلف أنصبة الإخوة والأخوات.",
+      "metadata": {}
+    }
+  },
+  {
+    "id": "W026",
+    "version": "1.0",
+    "priority": 60,
+    "condition": {
+      "type": "binary",
+      "op": ">",
+      "left": {"type": "variable", "name": "marriage_count"},
+      "right": {"type": "value", "value": 1}
+    },
+    "action": {
+      "type": "warning",
+      "severity": "warning",
+      "message_ar": "تنبيه ٢٦: تعدد الزوجات. يلزم التحقق من حقوق جميع الزوجات في الميراث.",
+      "metadata": {}
+    }
+  }
+]

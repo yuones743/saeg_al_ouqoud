@@ -1,0 +1,12 @@
+{
+  "id": "judicial_exit",
+  "version": "1.0",
+  "name": "تخارج قضائي",
+  "sections": [
+    {"key": "judgment", "title": "الحكم القضائي"},
+    {"key": "parties", "title": "أطراف التخارج"},
+    {"key": "property", "title": "العقار"},
+    {"key": "amount", "title": "مبلغ التخارج"},
+    {"key": "signatures", "title": "التوقيعات"}
+  ]
+}

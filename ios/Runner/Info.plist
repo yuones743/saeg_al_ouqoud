@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>صائغ العقود</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>ar</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>ar</string>
+    </array>
+    <key>UIAppFonts</key>
+    <array>
+        <string>TraditionalArabic.ttf</string>
+        <string>Amiri-Regular.ttf</string>
+        <string>Amiri-Bold.ttf</string>
+        <string>Cairo-Regular.ttf</string>
+        <string>Cairo-Bold.ttf</string>
+        <string>NotoNaskhArabic-Regular.ttf</string>
+        <string>NotoNaskhArabic-Bold.ttf</string>
+        <string>Lateef-Regular.ttf</string>
+    </array>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+</dict>
+</plist>

@@ -1,0 +1,11 @@
+{
+  "id": "inheritance_agreement",
+  "version": "1.0",
+  "name": "محضر اتفاق ورثة",
+  "sections": [
+    {"key": "deceased", "title": "بيانات المتوفى"},
+    {"key": "heirs", "title": "الورثة"},
+    {"key": "shares", "title": "توزيع الأسهم"},
+    {"key": "signatures", "title": "التوقيعات"}
+  ]
+}
