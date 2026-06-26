@@ -1,0 +1,253 @@
+name: Build APK (Final Nuclear Solution)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter 3.13.9
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.9'
+          channel: 'stable'
+
+      - name: Verify environment
+        run: |
+          echo "=== Java ==="
+          java -version 2>&1
+          echo ""
+          echo "=== Flutter ==="
+          flutter --version
+          echo ""
+          echo "=== FLUTTER_ROOT ==="
+          echo "$FLUTTER_ROOT"
+          echo ""
+          echo "=== ANDROID_SDK_ROOT ==="
+          echo "$ANDROID_SDK_ROOT"
+
+      - name: Backup user custom Android files
+        run: |
+          mkdir -p /tmp/android_backup
+          if [ -d android ]; then
+            cd android
+            [ -f app/src/main/AndroidManifest.xml ] && cp app/src/main/AndroidManifest.xml /tmp/android_backup/ && echo "✅ AndroidManifest.xml"
+            [ -d app/src/main/res ] && cp -r app/src/main/res /tmp/android_backup/ && echo "✅ res/"
+            [ -d app/src/main/kotlin ] && cp -r app/src/main/kotlin /tmp/android_backup/ && echo "✅ kotlin/"
+            [ -d app/src/main/java ] && cp -r app/src/main/java /tmp/android_backup/ && echo "✅ java/"
+            [ -d app/src/main/assets ] && cp -r app/src/main/assets /tmp/android_backup/ && echo "✅ assets/"
+          else
+            echo "ℹ️  No existing android/ folder"
+          fi
+
+      - name: Generate fresh Flutter Android template
+        run: |
+          PROJECT_NAME=$(grep "^name:" pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          [ -z "$PROJECT_NAME" ] && PROJECT_NAME="saeg_al_ouqoud"
+          echo "📦 Project: $PROJECT_NAME"
+          
+          rm -rf "$HOME/fresh_template"
+          cd "$HOME"
+          
+          flutter create \
+            --org=com.example \
+            --project-name="$PROJECT_NAME" \
+            --platforms=android \
+            --no-pub \
+            --description="Syrian Contract Drafter" \
+            fresh_template 2>&1 | tail -10
+
+      - name: Replace android/ with fresh template
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          rm -rf android
+          cp -r "$HOME/fresh_template/android" ./android
+          chmod +x android/gradlew
+
+      - name: Write local.properties correctly
+        run: |
+          if [ -z "$FLUTTER_ROOT" ] || [ ! -d "$FLUTTER_ROOT/packages/flutter_tools/gradle" ]; then
+            echo "❌ FLUTTER_ROOT is wrong: $FLUTTER_ROOT"
+            exit 1
+          fi
+          
+          cat > android/local.properties << EOF
+          sdk.dir=$ANDROID_SDK_ROOT
+          flutter.sdk=$FLUTTER_ROOT
+          flutter.versionName=1.0.0
+          flutter.versionCode=1
+          flutter.buildMode=release
+          EOF
+          
+          echo "✅ local.properties:"
+          cat android/local.properties
+
+      - name: Restore user customizations
+        run: |
+          for f in AndroidManifest.xml res kotlin java assets; do
+            SRC="/tmp/android_backup/$f"
+            DEST="android/app/src/main/$f"
+            [ ! -e "$SRC" ] && continue
+            if [ -d "$SRC" ]; then
+              mkdir -p "$DEST"
+              cp -rn "$SRC"/* "$DEST/" 2>/dev/null || true
+            else
+              cp "$SRC" "$DEST"
+            fi
+            echo "✅ Restored: $f"
+          done
+
+      - name: Configure for Samsung A11
+        run: |
+          cat > android/gradle.properties << 'GRADLE_PROPS_EOF'
+          org.gradle.jvmargs=-Xmx4G -XX:MaxMetaspaceSize=2G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          android.useAndroidX=true
+          android.enableJetifier=true
+          android.nonTransitiveRClass=true
+          android.defaults.buildfeatures.buildconfig=true
+          GRADLE_PROPS_EOF
+          
+          cat > android/app/build.gradle << 'BUILD_GRADLE_EOF'
+          plugins {
+              id "com.android.application"
+              id "kotlin-android"
+              id "dev.flutter.flutter-gradle-plugin"
+          }
+
+          def localProperties = new Properties()
+          def localPropertiesFile = rootProject.file('local.properties')
+          if (localPropertiesFile.exists()) {
+              localPropertiesFile.withReader('UTF-8') { reader ->
+                  localProperties.load(reader)
+              }
+          }
+
+          def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
+          def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
+
+          android {
+              namespace "com.example.saeg_al_ouqoud"
+              compileSdk 34
+              ndkVersion flutter.ndkVersion
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = '17'
+              }
+
+              sourceSets {
+                  main.java.srcDirs += 'src/main/kotlin'
+              }
+
+              defaultConfig {
+                  applicationId "com.example.saeg_al_ouqoud"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode flutterVersionCode.toInteger()
+                  versionName flutterVersionName
+
+                  ndk {
+                      abiFilters 'armeabi-v7a'
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.debug
+                      minifyEnabled false
+                      shrinkResources false
+                  }
+              }
+          }
+
+          flutter {
+              source '../..'
+          }
+
+          dependencies {
+              implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+          }
+          BUILD_GRADLE_EOF
+          
+          echo "✅ Configurations applied"
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Pre-build verification
+        run: |
+          echo "=== 🔍 Pre-build check ==="
+          echo "1. gradle-wrapper.jar:"
+          file android/gradle/wrapper/gradle-wrapper.jar
+          echo "2. local.properties:"
+          cat android/local.properties
+          echo "3. gradle-wrapper.properties:"
+          cat android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Build APK (with verbose output)
+        id: build
+        run: |
+          set +e
+          flutter build apk --release --target-platform=android-arm --verbose 2>&1 | tee /tmp/build.log | tail -80
+          BUILD_EXIT=${PIPESTATUS[0]}
+          echo "BUILD_EXIT=$BUILD_EXIT" >> $GITHUB_ENV
+          exit $BUILD_EXIT
+
+      - name: Analyze build failure
+        if: failure()
+        run: |
+          echo "═══════════════════════════════════════════════════════"
+          echo "❌ BUILD FAILED — تحليل اللوج"
+          echo "═══════════════════════════════════════════════════════"
+          echo "─── آخر 150 سطر من اللوج ───"
+          tail -150 /tmp/build.log
+          echo ""
+          echo "─── أخطاء 'error:' المباشرة ───"
+          grep -i "error:" /tmp/build.log | head -30
+          echo ""
+          echo "─── أخطاء Gradle ───"
+          grep -i -E "(gradle.*error|gradle.*fail|FAILURE:|What went wrong|> Could not)" /tmp/build.log | head -30
+
+      - name: Upload full build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-full
+          path: /tmp/build.log
+          if-no-files-found: ignore
+
+      - name: Verify APK
+        if: success()
+        run: |
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          if [ ! -f "$APK" ]; then
+            echo "❌ APK not found!"
+            exit 1
+          fi
+          ls -lh "$APK"
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-a11-armv7
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: ignore
