@@ -16,7 +16,6 @@ def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
 
 android {
-    // ✅ تم التصحيح: تم ضبط الاسم ليطابق مشروعك (com.saeg.al_ouqoud)
     namespace "com.saeg.al_ouqoud"
     compileSdk 34
     ndkVersion flutter.ndkVersion
@@ -35,43 +34,11 @@ android {
     }
 
     defaultConfig {
-        // ✅ تم التصحيح: تم ضبط الاسم ليطابق مشروعك (com.saeg.al_ouqoud)
         applicationId "com.saeg.al_ouqoud"
         minSdk 21
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-
-        // ✅ تم التثبيت على معمارية 32-bit (خاصة بهاتفك Samsung A11)
-        ndk {
-            abiFilters 'armeabi-v7a'
-        }
-    }
-
-    buildTypes {
-        release {
-            signingConfig signingConfigs.debug
-            minifyEnabled false
-            shrinkResources false
-        }
-    }
-}
-
-flutter {
-    source '../..'
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}        applicationId "com.saeg.al_ouqoud"  // ⬅️ غيّر هذا إذا كان اسم حزمة مختلفاً
-        minSdk 21
-        targetSdk 34
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
-
-        ndk {
-            abiFilters 'armeabi-v7a'
-        }
     }
 
     buildTypes {
