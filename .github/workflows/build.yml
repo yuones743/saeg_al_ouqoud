@@ -1,4 +1,4 @@
-name: Build APK (Final Fix)
+name: Build APK (Flutter 3.24.5 Final)
 
 on:
   workflow_dispatch:
@@ -6,9 +6,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
+      # ════════════════════════════════════════════════════════════
+      # 1) الإعداد
+      # ════════════════════════════════════════════════════════════
       - name: Checkout source
         uses: actions/checkout@v4
 
@@ -18,72 +21,214 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Flutter 3.13.9
+      - name: Setup Flutter 3.24.5 (Dart 3.5 — يحل كل مشاكل التوافق)
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.9'
+          flutter-version: '3.24.5'
           channel: 'stable'
 
-      - name: Fix pubspec.yaml - add meta override
+      - name: Verify environment
         run: |
-          if grep -q "^dependency_overrides:" pubspec.yaml; then
-            if ! grep -q "meta:" pubspec.yaml; then
-              sed -i '/^dependency_overrides:/a\  meta: 1.13.0' pubspec.yaml
-              echo "✅ Added meta to existing dependency_overrides"
-            else
-              echo "✅ meta override already exists"
-            fi
+          echo "=== Flutter ==="
+          flutter --version
+          echo ""
+          echo "=== Java ==="
+          java -version 2>&1
+
+      # ════════════════════════════════════════════════════════════
+      # 2) نسخ احتياطي للملفات المخصصة
+      # ════════════════════════════════════════════════════════════
+      - name: Backup user custom Android files
+        run: |
+          mkdir -p /tmp/backup
+          if [ -d android ]; then
+            cd android
+            [ -f app/src/main/AndroidManifest.xml ] && cp app/src/main/AndroidManifest.xml /tmp/backup/ && echo "✅ AndroidManifest.xml"
+            [ -d app/src/main/res ] && cp -r app/src/main/res /tmp/backup/ && echo "✅ res/"
+            [ -d app/src/main/kotlin ] && cp -r app/src/main/kotlin /tmp/backup/ && echo "✅ kotlin/"
+            [ -d app/src/main/java ] && cp -r app/src/main/java /tmp/backup/ && echo "✅ java/"
           else
-            cat >> pubspec.yaml << 'EOF'
-
-          dependency_overrides:
-            meta: 1.13.0
-          EOF
-            echo "✅ Added new dependency_overrides block"
+            echo "ℹ️  No existing android/"
           fi
-          
-          echo "═══ Updated pubspec.yaml ═══"
-          cat pubspec.yaml
 
-      - name: Clean pub cache and lock
+      # ════════════════════════════════════════════════════════════
+      # 3) توليد android/ نظيف بقالب Flutter 3.24.5
+      # ════════════════════════════════════════════════════════════
+      - name: Generate fresh Android template
         run: |
-          echo "🗑️  Removing pubspec.lock..."
-          rm -f pubspec.lock
-          echo "🗑️  Removing cached meta versions..."
-          rm -rf ~/.pub-cache/hosted/pub.dev/meta-*
-          echo "✅ Cache cleaned"
+          PROJECT_NAME=$(grep "^name:" pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          [ -z "$PROJECT_NAME" ] && PROJECT_NAME="saeg_al_ouqoud"
+          echo "📦 Project: $PROJECT_NAME"
+          
+          rm -rf "$HOME/template"
+          cd "$HOME"
+          flutter create \
+            --org=com.example \
+            --project-name="$PROJECT_NAME" \
+            --platforms=android \
+            --no-pub \
+            template 2>&1 | tail -10
 
+      - name: Replace android/ with fresh template
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          rm -rf android
+          cp -r "$HOME/template/android" ./android
+          chmod +x android/gradlew
+          
+          # local.properties بالمسار الصحيح
+          cat > android/local.properties << EOF
+          sdk.dir=$ANDROID_SDK_ROOT
+          flutter.sdk=$FLUTTER_ROOT
+          flutter.versionName=1.0.0
+          flutter.versionCode=1
+          flutter.buildMode=release
+          EOF
+          
+          echo "✅ New android/ ready"
+          ls -la android/gradle/wrapper/
+
+      # ════════════════════════════════════════════════════════════
+      # 4) استرجاع الملفات المخصصة
+      # ════════════════════════════════════════════════════════════
+      - name: Restore user customizations
+        run: |
+          for f in AndroidManifest.xml res kotlin java; do
+            SRC="/tmp/backup/$f"
+            DEST="android/app/src/main/$f"
+            [ ! -e "$SRC" ] && continue
+            if [ -d "$SRC" ]; then
+              mkdir -p "$DEST"
+              cp -rn "$SRC"/* "$DEST/" 2>/dev/null || true
+            else
+              cp "$SRC" "$DEST"
+            fi
+            echo "✅ Restored: $f"
+          done
+
+      # ════════════════════════════════════════════════════════════
+      # 5) تكوين Samsung A11 (API 21 + ARM 32-bit)
+      # ════════════════════════════════════════════════════════════
+      - name: Configure for Samsung A11
+        run: |
+          cat > android/gradle.properties << 'GRADLE_PROPS_EOF'
+          org.gradle.jvmargs=-Xmx4G -XX:MaxMetaspaceSize=2G -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.enableJetifier=true
+          android.nonTransitiveRClass=true
+          GRADLE_PROPS_EOF
+
+          cat > android/app/build.gradle << 'BUILD_GRADLE_EOF'
+          plugins {
+              id "com.android.application"
+              id "kotlin-android"
+              id "dev.flutter.flutter-gradle-plugin"
+          }
+
+          def localProperties = new Properties()
+          def localPropertiesFile = rootProject.file('local.properties')
+          if (localPropertiesFile.exists()) {
+              localPropertiesFile.withReader('UTF-8') { reader ->
+                  localProperties.load(reader)
+              }
+          }
+
+          def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
+          def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
+
+          android {
+              namespace "com.example.saeg_al_ouqoud"
+              compileSdk 34
+              ndkVersion flutter.ndkVersion
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = '17'
+              }
+
+              sourceSets {
+                  main.java.srcDirs += 'src/main/kotlin'
+              }
+
+              defaultConfig {
+                  applicationId "com.example.saeg_al_ouqoud"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode flutterVersionCode.toInteger()
+                  versionName flutterVersionName
+
+                  ndk {
+                      abiFilters 'armeabi-v7a'
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.debug
+                      minifyEnabled false
+                      shrinkResources false
+                  }
+              }
+          }
+
+          flutter {
+              source '../..'
+          }
+
+          dependencies {
+              implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+          }
+          BUILD_GRADLE_EOF
+          
+          echo "✅ Configured for A11"
+
+      # ════════════════════════════════════════════════════════════
+      # 6) حذف pubspec.lock القديم وتنظيف الكاش
+      # ════════════════════════════════════════════════════════════
+      - name: Clean lock & cache
+        run: |
+          rm -f pubspec.lock
+          rm -rf ~/.pub-cache/hosted/pub.dev/meta-*
+          flutter clean
+          echo "✅ Cleaned"
+
+      # ════════════════════════════════════════════════════════════
+      # 7) تحميل التبعيات
+      # ════════════════════════════════════════════════════════════
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Verify meta version
+      - name: Verify pubspec.lock has good versions
         run: |
-          echo "═══ meta in pubspec.lock ═══"
-          if [ -f pubspec.lock ]; then
-            grep -A 4 "^  meta:" pubspec.lock || echo "meta not found"
-          else
-            echo "No pubspec.lock yet"
-          fi
+          echo "═══ meta version ═══"
+          grep -A 3 "^  meta:" pubspec.lock || echo "not found"
 
-      - name: Build APK
+      # ════════════════════════════════════════════════════════════
+      # 8) البناء — مع التقاط السجل بشكل صحيح (بدون pipe مشكلة)
+      # ════════════════════════════════════════════════════════════
+      - name: 🚀 Build APK
         id: build
         run: |
-          set +e
-          flutter build apk --release --target-platform=android-arm --verbose 2>&1 | tee /tmp/build.log | tail -80
-          BUILD_EXIT=${PIPESTATUS[0]}
-          echo "BUILD_EXIT=$BUILD_EXIT" >> $GITHUB_ENV
+          # ✅ استخدام redirection بدل pipe — لحل مشكلة اختفاء السجل
+          flutter build apk --release --target-platform=android-arm --verbose > /tmp/build.log 2>&1
+          BUILD_EXIT=$?
+          echo "Build exit code: $BUILD_EXIT"
+          
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo ""
+            echo "═══════════════════════════════════════"
+            echo "❌ BUILD FAILED — آخر 100 سطر"
+            echo "═══════════════════════════════════════"
+            tail -100 /tmp/build.log
+            echo ""
+            echo "═══ Errors found ═══"
+            grep -i -E "(error:|exception|FAILURE|caused by|specified language|> Could not|> Task .* FAILED)" /tmp/build.log | head -30
+          fi
           exit $BUILD_EXIT
-
-      - name: Show errors if failed
-        if: failure()
-        run: |
-          echo "═══════════════════════════════════════"
-          echo "❌ BUILD FAILED"
-          echo "═══════════════════════════════════════"
-          tail -100 /tmp/build.log
-          echo ""
-          echo "═══ Errors ═══"
-          grep -i -E "error:|exception|FAILURE|What went wrong" /tmp/build.log | head -30
 
       - name: Upload build log
         if: always()
@@ -93,16 +238,16 @@ jobs:
           path: /tmp/build.log
           if-no-files-found: ignore
 
+      # ════════════════════════════════════════════════════════════
+      # 9) التحقق والرفع
+      # ════════════════════════════════════════════════════════════
       - name: Verify APK
         if: success()
         run: |
           APK="build/app/outputs/flutter-apk/app-release.apk"
-          if [ ! -f "$APK" ]; then
-            echo "❌ APK not found!"
-            exit 1
-          fi
-          echo "✅ APK generated:"
+          [ ! -f "$APK" ] && echo "❌ No APK" && exit 1
           ls -lh "$APK"
+          file "$APK"
 
       - name: Upload APK
         if: success()
