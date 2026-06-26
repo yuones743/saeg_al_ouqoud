@@ -1,4 +1,4 @@
-name: Build Android APK (32-bit)
+name: Build APK (Direct Gradle)
 
 on:
   push:
@@ -24,56 +24,26 @@ jobs:
         with:
           flutter-version: '3.13.9'
           channel: 'stable'
-          cache: true
 
-      - name: Ensure gradle-wrapper.jar exists
-        run: |
-          set -e
-          WRAPPER_DIR="android/gradle/wrapper"
-          WRAPPER_JAR="$WRAPPER_DIR/gradle-wrapper.jar"
-          WRAPPER_PROPS="$WRAPPER_DIR/gradle-wrapper.properties"
-          
-          mkdir -p "$WRAPPER_DIR"
-          
-          if [ ! -s "$WRAPPER_JAR" ]; then
-            echo "⬇️  gradle-wrapper.jar not found, downloading from official Gradle 7.6.0 source..."
-            curl -fL --retry 3 --connect-timeout 30 \
-              -o "$WRAPPER_JAR" \
-              "https://raw.githubusercontent.com/gradle/gradle/v7.6.0/gradle/wrapper/gradle-wrapper.jar"
-            echo "✅ Downloaded successfully"
-          else
-            echo "✅ gradle-wrapper.jar already present"
-          fi
-          
-          chmod +x android/gradlew || true
-          
-          echo "--- Wrapper files ---"
-          ls -la "$WRAPPER_DIR"
-          echo "--- gradle-wrapper.properties ---"
-          cat "$WRAPPER_PROPS"
-
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
-
-      - name: Show Java & Flutter versions
-        run: |
-          java -version
-          flutter --version
+      # ⬇️⬇️⬇️ الخطوة السحرية: تثبيت Gradle على النظام مباشرة ⬇️⬇️⬇️
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '7.6'
+      # ⬆️⬆️⬆️ هذه الخطوة تتجاوز الـ Wrapper تماماً ⬆️⬆️⬆️
 
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Build APK (armeabi-v7a only, for Samsung A11)
-        run: flutter build apk --release --target-platform=android-arm
-
-      - name: Verify APK was generated
+      - name: Build APK using system Gradle (NOT wrapper)
         run: |
-          ls -lh build/app/outputs/flutter-apk/ || true
-          file build/app/outputs/flutter-apk/app-release.apk || true
+          # نذهب إلى مجلد android ونستخدم الأمر gradle مباشرة (بدون ./gradlew)
+          cd android
+          gradle assembleRelease
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-armv7
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-release
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
