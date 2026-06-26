@@ -123,9 +123,6 @@ jobs:
           ls -la android/app/src/main/
           exit 0
 
-      # ════════════════════════════════════════════════════════════
-      # ✅ تم إصلاح هذه الخطوة (حذف dependencies {} block)
-      # ════════════════════════════════════════════════════════════
       - name: Configure for Samsung A11
         run: |
           cat > android/gradle.properties << 'GRADLE_PROPS_EOF'
@@ -135,7 +132,7 @@ jobs:
           android.nonTransitiveRClass=true
           GRADLE_PROPS_EOF
 
-          # ✅ بدون dependencies {} block — Kotlin Gradle Plugin يتعامل معاها
+          # ✅ تم إزالة التعليق الخاطئ (#) واستبداله بـ // (أو حذفه تماماً)
           cat > android/app/build.gradle << 'BUILD_GRADLE_EOF'
           plugins {
               id "com.android.application"
@@ -196,10 +193,10 @@ jobs:
           flutter {
               source '../..'
           }
-          # ✅ مفيش dependencies {} block — اتشال
+          // dependencies {} block removed - kotlin-android plugin handles it
           BUILD_GRADLE_EOF
           
-          echo "✅ Configured for Samsung A11 (no kotlin_version needed)"
+          echo "✅ Configured for Samsung A11"
           exit 0
 
       - name: Clean lock & cache
@@ -219,9 +216,6 @@ jobs:
           grep -A 3 "^  meta:" pubspec.lock || echo "not found"
           exit 0
 
-      # ════════════════════════════════════════════════════════════
-      # 🚀 خطوة البناء (باستخدام tee لعرض السجل)
-      # ════════════════════════════════════════════════════════════
       - name: 🚀 Build APK
         id: build
         run: |
