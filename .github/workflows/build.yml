@@ -1,23 +1,60 @@
-name: Build APK
+name: Build Android APK (32-bit)
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.13.9'
-      - run: flutter pub get
-      - name: Grant execute permission for gradlew
+          channel: 'stable'
+          cache: true
+
+      - name: Ensure gradle-wrapper.jar exists
+        run: |
+          set -e
+          WRAPPER_DIR="android/gradle/wrapper"
+          WRAPPER_JAR="$WRAPPER_DIR/gradle-wrapper.jar"
+          mkdir -p "$WRAPPER_DIR"
+          if [ ! -s "$WRAPPER_JAR" ]; then
+            echo "⬇️ Downloading gradle-wrapper.jar from official Gradle 7.6.0..."
+            curl -fL --retry 3 --connect-timeout 30 \
+              -o "$WRAPPER_JAR" \
+              "https://raw.githubusercontent.com/gradle/gradle/v7.6.0/gradle/wrapper/gradle-wrapper.jar"
+            echo "✅ Downloaded successfully"
+          else
+            echo "✅ gradle-wrapper.jar already present"
+          fi
+          chmod +x android/gradlew || true
+
+      - name: Make gradlew executable
         run: chmod +x android/gradlew
-      - name: Build APK
-        run: ./android/gradlew assembleRelease
-      - uses: actions/upload-artifact@v4
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Build APK (armeabi-v7a only)
+        run: flutter build apk --release --target-platform=android-arm
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: app/build/outputs/apk/release/app-release.apk
+          name: app-release-armv7
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
