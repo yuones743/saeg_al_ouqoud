@@ -192,7 +192,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              // ✅ تم إصلاح الخطأ: تحويل int إلى double
               _sellers = List.generate(_sellerCount, (i) => LegalParty(
                 id: 'seller_${i + 1}',
                 fullName: '',
@@ -333,6 +332,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
+  // ✅ تم إصلاح مشكلة الكتابة المعكوسة
   Widget _buildPartyCard({
     required int index,
     required LegalParty party,
@@ -402,45 +402,48 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               ],
             ),
             const Divider(),
-            ArabicTextField(
+
+            // ✅ جميع الحقول مصححة للكتابة العربية
+            _buildArabicTextField(
               controller: nameCtrl,
               label: 'الاسم الكامل',
               required: true,
               onChanged: (v) => onUpdate(party.copyWith(fullName: v)),
             ),
-            ArabicTextField(
+            _buildArabicTextField(
               controller: fatherCtrl,
               label: 'اسم الأب',
               onChanged: (v) => onUpdate(party.copyWith(fatherName: v)),
             ),
-            ArabicTextField(
+            _buildArabicTextField(
               controller: motherCtrl,
               label: 'اسم الأم',
               onChanged: (v) => onUpdate(party.copyWith(motherName: v)),
             ),
-            ArabicTextField(
+            _buildArabicTextField(
               controller: idCtrl,
               label: 'الرقم الوطني',
               onChanged: (v) => onUpdate(party.copyWith(nationalId: v)),
             ),
-            ArabicTextField(
+            _buildArabicTextField(
               controller: phoneCtrl,
               label: 'رقم الهاتف',
               type: TextInputType.phone,
               onChanged: (v) => onUpdate(party.copyWith(phone: v)),
             ),
-            ArabicTextField(
+            _buildArabicTextField(
               controller: addressCtrl,
               label: 'العنوان',
               onChanged: (v) => onUpdate(party.copyWith(address: v)),
             ),
-            ArabicTextField(
+            _buildArabicTextField(
               controller: shareCtrl,
               label: 'الحصة (من 2400 سهم)',
               type: TextInputType.number,
               onChanged: (v) => onUpdate(party.copyWith(share: double.tryParse(v) ?? 0)),
             ),
             const SizedBox(height: 8),
+
             DropdownButtonFormField<LegalCapacity>(
               value: capacity,
               decoration: const InputDecoration(
@@ -495,6 +498,36 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
+  // ✅ دالة مساعدة لحقل نصي يعمل بشكل صحيح مع العربية
+  Widget _buildArabicTextField({
+    required TextEditingController controller,
+    required String label,
+    bool required = false,
+    TextInputType type = TextInputType.text,
+    int maxLines = 1,
+    ValueChanged<String>? onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TextFormField(
+        controller: controller,
+        textDirection: TextDirection.rtl,
+        textAlign: TextAlign.right,
+        keyboardType: type,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: required ? '$label *' : label,
+          border: const OutlineInputBorder(),
+          isDense: true,
+        ),
+        onChanged: onChanged,
+        validator: required
+            ? (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null
+            : null,
+      ),
+    );
+  }
+
   // ═══════════════════════════════════════════════════════════
   // 📌 الخطوة 5: بيانات العقار والثمن
   // ═══════════════════════════════════════════════════════════
@@ -524,30 +557,30 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    ArabicTextField(
+                    _buildArabicTextField(
                       controller: TextEditingController(text: _propertyNumber),
                       label: 'رقم السجل العقاري',
                       required: true,
                       onChanged: (v) => _propertyNumber = v,
                     ),
-                    ArabicTextField(
+                    _buildArabicTextField(
                       controller: TextEditingController(text: _propertyZone),
                       label: 'المنطقة العقارية',
                       required: true,
                       onChanged: (v) => _propertyZone = v,
                     ),
-                    ArabicTextField(
+                    _buildArabicTextField(
                       controller: TextEditingController(text: _propertyAddress),
                       label: 'العنوان التفصيلي',
                       onChanged: (v) => _propertyAddress = v,
                     ),
-                    ArabicTextField(
+                    _buildArabicTextField(
                       controller: TextEditingController(text: _propertyArea.toString()),
                       label: 'المساحة (م²)',
                       type: TextInputType.number,
                       onChanged: (v) => _propertyArea = double.tryParse(v) ?? 0,
                     ),
-                    ArabicTextField(
+                    _buildArabicTextField(
                       controller: TextEditingController(text: _boundaries),
                       label: 'الحدود',
                       maxLines: 2,
@@ -559,14 +592,14 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
-                    ArabicTextField(
+                    _buildArabicTextField(
                       controller: TextEditingController(text: _totalPrice.toString()),
                       label: 'الثمن الإجمالي (ل.س)',
                       type: TextInputType.number,
                       required: true,
                       onChanged: (v) => _totalPrice = double.tryParse(v) ?? 0,
                     ),
-                    ArabicTextField(
+                    _buildArabicTextField(
                       controller: TextEditingController(text: _penaltyAmount.toString()),
                       label: 'الشرط الجزائي (ل.س)',
                       type: TextInputType.number,
@@ -773,6 +806,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
         content: TextField(
           controller: controller,
           textDirection: TextDirection.rtl,
+          textAlign: TextAlign.right,
           decoration: const InputDecoration(
             labelText: 'نص البند',
             border: OutlineInputBorder(),
