@@ -37,6 +37,40 @@ class LegalParty {
     this.isExpatriate = false,
   });
 
+  LegalParty copyWith({
+    String? id,
+    String? fullName,
+    String? nationalId,
+    String? fatherName,
+    String? motherName,
+    String? address,
+    String? phone,
+    PartyRole? role,
+    LegalCapacity? capacity,
+    double? share,
+    String? poaNumber,
+    String? poaDate,
+    bool? isMinor,
+    bool? isExpatriate,
+  }) {
+    return LegalParty(
+      id: id ?? this.id,
+      fullName: fullName ?? this.fullName,
+      nationalId: nationalId ?? this.nationalId,
+      fatherName: fatherName ?? this.fatherName,
+      motherName: motherName ?? this.motherName,
+      address: address ?? this.address,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      capacity: capacity ?? this.capacity,
+      share: share ?? this.share,
+      poaNumber: poaNumber ?? this.poaNumber,
+      poaDate: poaDate ?? this.poaDate,
+      isMinor: isMinor ?? this.isMinor,
+      isExpatriate: isExpatriate ?? this.isExpatriate,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'fullName': fullName,
