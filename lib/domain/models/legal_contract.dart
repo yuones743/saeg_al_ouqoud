@@ -14,8 +14,8 @@ class LegalParty {
   final String phone;
   final PartyRole role;
   final LegalCapacity capacity;
-  final double share; // 0-2400
-  final String? poaNumber; // رقم الوكالة إن وجد
+  final double share;
+  final String? poaNumber;
   final String? poaDate;
   final bool isMinor;
   final bool isExpatriate;
@@ -66,7 +66,7 @@ class LegalContractData {
   final double propertyArea;
   final String boundaries;
   final double totalPrice;
-  final String paymentMethod; // نقد، بنكي، تقسيط
+  final String paymentMethod;
   final double penaltyAmount;
   final List<String> customClauses;
   final DateTime createdAt;
