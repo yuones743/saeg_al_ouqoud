@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../domain/models/legal_contract.dart' as legal;  // ✅ اسم مستعار
+import 'dart:ui' as ui;  // ✅ استيراد TextDirection
+import '../../domain/models/legal_contract.dart' as legal;
 import '../../domain/models/contract.dart';
 import '../../domain/models/person.dart';
 import '../../domain/models/property.dart';
@@ -22,7 +23,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   int _step = 0;
   final int _totalSteps = 6;
 
-  // ✅ استخدام legal.ContractType
   legal.ContractType _type = legal.ContractType.sale;
   List<legal.LegalParty> _sellers = [];
   List<legal.LegalParty> _buyers = [];
@@ -35,9 +35,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   String _paymentMethod = 'نقداً';
   double _penaltyAmount = 0;
   List<String> _customClauses = [];
-
-  // ─── مرونة غير محدودة للأطراف ───
-  // لا نحتاج إلى _sellerCount و _buyerCount، بل نستخدم القوائم مباشرة
 
   final PageController _pageController = PageController();
 
@@ -169,9 +166,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                   // ─── البائعون ───
                   Row(
                     children: [
-                      const Text(
+                      // ✅ حذف const من Text
+                      Text(
                         'البائعون: ${_sellers.length}',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
                       IconButton(
@@ -204,9 +202,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                   // ─── المشترون ───
                   Row(
                     children: [
-                      const Text(
+                      // ✅ حذف const من Text
+                      Text(
                         'المشترون: ${_buyers.length}',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
                       IconButton(
@@ -263,7 +262,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 3 و 4: بيانات الأطراف (ديناميكية)
+  // 📌 الخطوة 3 و 4: بيانات الأطراف
   // ═══════════════════════════════════════════════════════════
   Widget _buildStep3() {
     return _buildPartiesStep(
@@ -297,9 +296,9 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'أدخل بيانات كل طرف بالتفصيل',
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(fontSize: 14, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -341,8 +340,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       padding: const EdgeInsets.only(bottom: 8),
       child: TextFormField(
         controller: controller,
-        textDirection: TextDirection.rtl,
-        textAlign: TextAlign.right,
+        textAlign: TextAlign.right,  // ✅ كافٍ للعربية
         keyboardType: type,
         maxLines: maxLines,
         decoration: InputDecoration(
@@ -681,7 +679,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                     child: SelectableText(
                       contractText,
                       style: const TextStyle(fontSize: 14, height: 1.8),
-                      textDirection: TextDirection.rtl,
+                      textDirection: ui.TextDirection.rtl,  // ✅ استخدام ui.TextDirection
                     ),
                   ),
                 ),
@@ -792,7 +790,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
         title: const Text('إضافة بند إضافي'),
         content: TextField(
           controller: controller,
-          textDirection: TextDirection.rtl,
           textAlign: TextAlign.right,
           decoration: const InputDecoration(
             labelText: 'نص البند',
@@ -832,12 +829,11 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ دالة تصدير PDF مرتبطة بالنظام الموجود
   void _exportPdf(legal.LegalContractData data) async {
     try {
       final contract = _convertToContract(data);
       final pdfService = PdfService();
-      final file = await pdfService.generate(contract);
+      await pdfService.generate(contract);
 
       if (mounted) {
         Navigator.push(
@@ -856,7 +852,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     }
   }
 
-  // ✅ دالة حفظ العقد
   void _saveContract() async {
     try {
       final contractData = legal.LegalContractData(
@@ -877,8 +872,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
       final contract = _convertToContract(contractData);
       final provider = context.read<ContractProvider>();
-
-      // حفظ العقد من خلال Provider
       await provider.saveContract();
 
       if (mounted) {
@@ -895,7 +888,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     }
   }
 
-  // ✅ دالة تحويل LegalContractData إلى Contract
   Contract _convertToContract(legal.LegalContractData data) {
     final sellers = data.sellers.map((p) => Person(
       id: p.id,
@@ -941,7 +933,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ دالة تحويل أنواع العقود
   ContractType _mapContractType(legal.ContractType type) {
     switch (type) {
       case legal.ContractType.sale:
