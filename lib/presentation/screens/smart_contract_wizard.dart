@@ -57,29 +57,26 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       ),
       body: Column(
         children: [
-          // شريط التقدم
           LinearProgressIndicator(
             value: (_step + 1) / _totalSteps,
             backgroundColor: Colors.grey[300],
             color: const Color(0xFF1B4F72),
             minHeight: 6,
           ),
-          // محتوى الخطوات
           Expanded(
             child: PageView(
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                _buildStep1(), // نوع العقد
-                _buildStep2(), // عدد الأطراف
-                _buildStep3(), // بيانات البائعين
-                _buildStep4(), // بيانات المشترين
-                _buildStep5(), // بيانات العقار والثمن
-                _buildStep6(), // معاينة وتصدير
+                _buildStep1(),
+                _buildStep2(),
+                _buildStep3(),
+                _buildStep4(),
+                _buildStep5(),
+                _buildStep6(),
               ],
             ),
           ),
-          // أزرار التنقل
           _buildNavigationButtons(),
         ],
       ),
@@ -195,19 +192,20 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
+              // ✅ تم إصلاح الخطأ: تحويل int إلى double
               _sellers = List.generate(_sellerCount, (i) => LegalParty(
                 id: 'seller_${i + 1}',
                 fullName: '',
                 nationalId: '',
                 role: PartyRole.seller,
-                share: 2400 ~/ _sellerCount,
+                share: (2400 / _sellerCount).toDouble(),
               ));
               _buyers = List.generate(_buyerCount, (i) => LegalParty(
                 id: 'buyer_${i + 1}',
                 fullName: '',
                 nationalId: '',
                 role: PartyRole.buyer,
-                share: 2400 ~/ _buyerCount,
+                share: (2400 / _buyerCount).toDouble(),
               ));
               _goToStep(2);
             },
@@ -808,18 +806,15 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   void _shareContractText(String text) {
-    // يمكن إضافة مشاركة النص هنا
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('تم نسخ النص إلى الحافظة')),
     );
   }
 
   void _exportPdf(LegalContractData data) {
-    // هنا سيتم ربطه بنظام PDF الموجود
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('جاري تجهيز ملف PDF...')),
     );
-    // Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfPreviewScreen()));
   }
 
   void _saveContract() {
@@ -828,10 +823,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 }
-
-// ═══════════════════════════════════════════════════════════
-// 📦 إضافات للـ LegalParty
-// ═══════════════════════════════════════════════════════════
 
 extension LegalPartyExtension on LegalParty {
   LegalParty copyWith({
