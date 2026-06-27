@@ -1,4 +1,4 @@
-import '../models/legal_contract.dart';
+import '../../domain/models/legal_contract.dart';
 
 class ContractGenerator {
   static String generate(LegalContractData data) {
