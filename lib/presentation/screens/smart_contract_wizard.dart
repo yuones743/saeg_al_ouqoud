@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../domain/models/legal_contract.dart';
+import '../../domain/models/contract.dart';
+import '../../domain/models/person.dart';
+import '../../domain/models/property.dart';
+import '../../domain/models/payment.dart';
 import '../../core/engine/contract_generator.dart';
+import '../../application/services/pdf_service.dart';
 import '../state/contract_provider.dart';
-import '../widgets/arabic_widgets.dart';
 import 'pdf_preview_screen.dart';
 
 class SmartContractWizard extends StatefulWidget {
@@ -35,9 +40,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   int _sellerCount = 1;
   int _buyerCount = 1;
   final PageController _pageController = PageController();
-
-  // ─── مفاتيح التحكم ───
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -332,7 +334,36 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ تم إصلاح مشكلة الكتابة المعكوسة
+  // ✅ حقل نصي يعمل بشكل صحيح مع العربية
+  Widget _buildArabicTextField({
+    required TextEditingController controller,
+    required String label,
+    bool required = false,
+    TextInputType type = TextInputType.text,
+    int maxLines = 1,
+    ValueChanged<String>? onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TextFormField(
+        controller: controller,
+        textDirection: TextDirection.rtl,
+        textAlign: TextAlign.right,
+        keyboardType: type,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: required ? '$label *' : label,
+          border: const OutlineInputBorder(),
+          isDense: true,
+        ),
+        onChanged: onChanged,
+        validator: required
+            ? (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null
+            : null,
+      ),
+    );
+  }
+
   Widget _buildPartyCard({
     required int index,
     required LegalParty party,
@@ -402,8 +433,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               ],
             ),
             const Divider(),
-
-            // ✅ جميع الحقول مصححة للكتابة العربية
             _buildArabicTextField(
               controller: nameCtrl,
               label: 'الاسم الكامل',
@@ -443,7 +472,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               onChanged: (v) => onUpdate(party.copyWith(share: double.tryParse(v) ?? 0)),
             ),
             const SizedBox(height: 8),
-
             DropdownButtonFormField<LegalCapacity>(
               value: capacity,
               decoration: const InputDecoration(
@@ -498,36 +526,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ دالة مساعدة لحقل نصي يعمل بشكل صحيح مع العربية
-  Widget _buildArabicTextField({
-    required TextEditingController controller,
-    required String label,
-    bool required = false,
-    TextInputType type = TextInputType.text,
-    int maxLines = 1,
-    ValueChanged<String>? onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: TextFormField(
-        controller: controller,
-        textDirection: TextDirection.rtl,
-        textAlign: TextAlign.right,
-        keyboardType: type,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: required ? '$label *' : label,
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
-        onChanged: onChanged,
-        validator: required
-            ? (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null
-            : null,
-      ),
-    );
-  }
-
   // ═══════════════════════════════════════════════════════════
   // 📌 الخطوة 5: بيانات العقار والثمن
   // ═══════════════════════════════════════════════════════════
@@ -549,81 +547,78 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Form(
-            key: _formKey,
-            child: Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildArabicTextField(
-                      controller: TextEditingController(text: _propertyNumber),
-                      label: 'رقم السجل العقاري',
-                      required: true,
-                      onChanged: (v) => _propertyNumber = v,
-                    ),
-                    _buildArabicTextField(
-                      controller: TextEditingController(text: _propertyZone),
-                      label: 'المنطقة العقارية',
-                      required: true,
-                      onChanged: (v) => _propertyZone = v,
-                    ),
-                    _buildArabicTextField(
-                      controller: TextEditingController(text: _propertyAddress),
-                      label: 'العنوان التفصيلي',
-                      onChanged: (v) => _propertyAddress = v,
-                    ),
-                    _buildArabicTextField(
-                      controller: TextEditingController(text: _propertyArea.toString()),
-                      label: 'المساحة (م²)',
-                      type: TextInputType.number,
-                      onChanged: (v) => _propertyArea = double.tryParse(v) ?? 0,
-                    ),
-                    _buildArabicTextField(
-                      controller: TextEditingController(text: _boundaries),
-                      label: 'الحدود',
-                      maxLines: 2,
-                      onChanged: (v) => _boundaries = v,
-                    ),
-                    const Divider(),
-                    const Text(
-                      'البيانات المالية',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildArabicTextField(
-                      controller: TextEditingController(text: _totalPrice.toString()),
-                      label: 'الثمن الإجمالي (ل.س)',
-                      type: TextInputType.number,
-                      required: true,
-                      onChanged: (v) => _totalPrice = double.tryParse(v) ?? 0,
-                    ),
-                    _buildArabicTextField(
-                      controller: TextEditingController(text: _penaltyAmount.toString()),
-                      label: 'الشرط الجزائي (ل.س)',
-                      type: TextInputType.number,
-                      onChanged: (v) => _penaltyAmount = double.tryParse(v) ?? 0,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: DropdownButtonFormField<String>(
-                        value: _paymentMethod,
-                        decoration: const InputDecoration(
-                          labelText: 'طريقة الدفع',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'نقداً', child: Text('نقداً')),
-                          DropdownMenuItem(value: 'بنكي', child: Text('تحويل بنكي')),
-                          DropdownMenuItem(value: 'تقسيط', child: Text('تقسيط')),
-                        ],
-                        onChanged: (v) => setState(() => _paymentMethod = v!),
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildArabicTextField(
+                    controller: TextEditingController(text: _propertyNumber),
+                    label: 'رقم السجل العقاري',
+                    required: true,
+                    onChanged: (v) => _propertyNumber = v,
+                  ),
+                  _buildArabicTextField(
+                    controller: TextEditingController(text: _propertyZone),
+                    label: 'المنطقة العقارية',
+                    required: true,
+                    onChanged: (v) => _propertyZone = v,
+                  ),
+                  _buildArabicTextField(
+                    controller: TextEditingController(text: _propertyAddress),
+                    label: 'العنوان التفصيلي',
+                    onChanged: (v) => _propertyAddress = v,
+                  ),
+                  _buildArabicTextField(
+                    controller: TextEditingController(text: _propertyArea.toString()),
+                    label: 'المساحة (م²)',
+                    type: TextInputType.number,
+                    onChanged: (v) => _propertyArea = double.tryParse(v) ?? 0,
+                  ),
+                  _buildArabicTextField(
+                    controller: TextEditingController(text: _boundaries),
+                    label: 'الحدود',
+                    maxLines: 2,
+                    onChanged: (v) => _boundaries = v,
+                  ),
+                  const Divider(),
+                  const Text(
+                    'البيانات المالية',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildArabicTextField(
+                    controller: TextEditingController(text: _totalPrice.toString()),
+                    label: 'الثمن الإجمالي (ل.س)',
+                    type: TextInputType.number,
+                    required: true,
+                    onChanged: (v) => _totalPrice = double.tryParse(v) ?? 0,
+                  ),
+                  _buildArabicTextField(
+                    controller: TextEditingController(text: _penaltyAmount.toString()),
+                    label: 'الشرط الجزائي (ل.س)',
+                    type: TextInputType.number,
+                    onChanged: (v) => _penaltyAmount = double.tryParse(v) ?? 0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: DropdownButtonFormField<String>(
+                      value: _paymentMethod,
+                      decoration: const InputDecoration(
+                        labelText: 'طريقة الدفع',
+                        border: OutlineInputBorder(),
+                        isDense: true,
                       ),
+                      items: const [
+                        DropdownMenuItem(value: 'نقداً', child: Text('نقداً')),
+                        DropdownMenuItem(value: 'بنكي', child: Text('تحويل بنكي')),
+                        DropdownMenuItem(value: 'تقسيط', child: Text('تقسيط')),
+                      ],
+                      onChanged: (v) => setState(() => _paymentMethod = v!),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -711,9 +706,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.share),
                         label: const Text('مشاركة نص'),
-                        onPressed: () {
-                          _shareContractText(contractText);
-                        },
+                        onPressed: () => _shareContractText(contractText),
                       ),
                     ),
                   ],
@@ -845,51 +838,125 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  void _exportPdf(LegalContractData data) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('جاري تجهيز ملف PDF...')),
+  // ✅ دالة تصدير PDF مرتبطة بالنظام الموجود
+  void _exportPdf(LegalContractData data) async {
+    try {
+      final contract = _convertToContract(data);
+      final pdfService = PdfService();
+      final file = await pdfService.generate(contract);
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const PdfPreviewScreen(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في التصدير: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  // ✅ دالة حفظ العقد
+  void _saveContract() async {
+    try {
+      final contractData = LegalContractData(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        type: _type,
+        sellers: _sellers,
+        buyers: _buyers,
+        propertyNumber: _propertyNumber,
+        propertyZone: _propertyZone,
+        propertyAddress: _propertyAddress,
+        propertyArea: _propertyArea,
+        boundaries: _boundaries,
+        totalPrice: _totalPrice,
+        paymentMethod: _paymentMethod,
+        penaltyAmount: _penaltyAmount,
+        customClauses: _customClauses,
+      );
+
+      final contract = _convertToContract(contractData);
+      final provider = context.read<ContractProvider>();
+
+      // حفظ العقد من خلال Provider
+      await provider.saveContract();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم حفظ العقد بنجاح'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في الحفظ: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  // ✅ دالة تحويل LegalContractData إلى Contract
+  Contract _convertToContract(LegalContractData data) {
+    final sellers = data.sellers.map((p) => Person(
+      id: p.id,
+      fullName: p.fullName,
+      nationalId: p.nationalId,
+      phone: p.phone,
+      address: p.address,
+      role: PersonRole.seller,
+      isMinor: p.isMinor,
+      isExpatriate: p.isExpatriate,
+    )).toList();
+
+    final buyers = data.buyers.map((p) => Person(
+      id: p.id,
+      fullName: p.fullName,
+      nationalId: p.nationalId,
+      phone: p.phone,
+      address: p.address,
+      role: PersonRole.buyer,
+      isMinor: p.isMinor,
+      isExpatriate: p.isExpatriate,
+    )).toList();
+
+    return Contract(
+      id: data.id,
+      type: _mapContractType(data.type),
+      contractDate: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+      city: data.propertyAddress,
+      sellers: sellers,
+      buyers: buyers,
+      property: Property(
+        registryNumber: data.propertyNumber,
+        zone: data.propertyZone,
+        area: data.propertyArea,
+        boundaries: data.boundaries,
+      ),
+      payment: Payment(
+        totalPrice: data.totalPrice,
+        paidAmount: 0,
+        balance: data.totalPrice,
+        penaltyAmount: data.penaltyAmount,
+      ),
     );
   }
 
-  void _saveContract() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حفظ العقد بنجاح'), backgroundColor: Colors.green),
-    );
-  }
-}
-
-extension LegalPartyExtension on LegalParty {
-  LegalParty copyWith({
-    String? id,
-    String? fullName,
-    String? nationalId,
-    String? fatherName,
-    String? motherName,
-    String? address,
-    String? phone,
-    PartyRole? role,
-    LegalCapacity? capacity,
-    double? share,
-    String? poaNumber,
-    String? poaDate,
-    bool? isMinor,
-    bool? isExpatriate,
-  }) {
-    return LegalParty(
-      id: id ?? this.id,
-      fullName: fullName ?? this.fullName,
-      nationalId: nationalId ?? this.nationalId,
-      fatherName: fatherName ?? this.fatherName,
-      motherName: motherName ?? this.motherName,
-      address: address ?? this.address,
-      phone: phone ?? this.phone,
-      role: role ?? this.role,
-      capacity: capacity ?? this.capacity,
-      share: share ?? this.share,
-      poaNumber: poaNumber ?? this.poaNumber,
-      poaDate: poaDate ?? this.poaDate,
-      isMinor: isMinor ?? this.isMinor,
-      isExpatriate: isExpatriate ?? this.isExpatriate,
-    );
+  ContractType _mapContractType(ContractType type) {
+    switch (type) {
+      case ContractType.sale: return ContractType.directSale;
+      case ContractType.rent: return ContractType.settlement;
+      case ContractType.gift: return ContractType.settlement;
+      case ContractType.partnership: return ContractType.complexProperty;
+      case ContractType.vehicleSale: return ContractType.directSale;
+      case ContractType.vehicleRent: return ContractType.settlement;
+      case ContractType.agency: return ContractType.settlement;
+      default: return ContractType.directSale;
+    }
   }
 }
