@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../domain/models/legal_contract.dart';
+import '../../domain/models/legal_contract.dart' as legal;  // ✅ اسم مستعار
 import '../../domain/models/contract.dart';
 import '../../domain/models/person.dart';
 import '../../domain/models/property.dart';
@@ -22,10 +22,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   int _step = 0;
   final int _totalSteps = 6;
 
-  // ─── بيانات العقد ───
-  ContractType _type = ContractType.sale;
-  List<LegalParty> _sellers = [];
-  List<LegalParty> _buyers = [];
+  // ✅ استخدام legal.ContractType
+  legal.ContractType _type = legal.ContractType.sale;
+  List<legal.LegalParty> _sellers = [];
+  List<legal.LegalParty> _buyers = [];
   String _propertyNumber = '';
   String _propertyZone = '';
   String _propertyAddress = '';
@@ -36,9 +36,9 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   double _penaltyAmount = 0;
   List<String> _customClauses = [];
 
-  // ─── متغيرات مساعدة ───
-  int _sellerCount = 1;
-  int _buyerCount = 1;
+  // ─── مرونة غير محدودة للأطراف ───
+  // لا نحتاج إلى _sellerCount و _buyerCount، بل نستخدم القوائم مباشرة
+
   final PageController _pageController = PageController();
 
   @override
@@ -112,13 +112,13 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               padding: const EdgeInsets.all(8),
               child: Column(
                 children: [
-                  _buildTypeTile(ContractType.sale, '🏠', 'بيع عقاري قطعي'),
-                  _buildTypeTile(ContractType.rent, '🔑', 'إيجار عقاري'),
-                  _buildTypeTile(ContractType.gift, '🎁', 'هبة عقارية'),
-                  _buildTypeTile(ContractType.partnership, '🏗️', 'مشاركة بناء'),
-                  _buildTypeTile(ContractType.vehicleSale, '🚗', 'بيع مركبة'),
-                  _buildTypeTile(ContractType.vehicleRent, '🚙', 'إيجار مركبة'),
-                  _buildTypeTile(ContractType.agency, '📜', 'وكالة غير قابلة للعزل'),
+                  _buildTypeTile(legal.ContractType.sale, '🏠', 'بيع عقاري قطعي'),
+                  _buildTypeTile(legal.ContractType.rent, '🔑', 'إيجار عقاري'),
+                  _buildTypeTile(legal.ContractType.gift, '🎁', 'هبة عقارية'),
+                  _buildTypeTile(legal.ContractType.partnership, '🏗️', 'مشاركة بناء'),
+                  _buildTypeTile(legal.ContractType.vehicleSale, '🚗', 'بيع مركبة'),
+                  _buildTypeTile(legal.ContractType.vehicleRent, '🚙', 'إيجار مركبة'),
+                  _buildTypeTile(legal.ContractType.agency, '📜', 'وكالة غير قابلة للعزل'),
                 ],
               ),
             ),
@@ -128,8 +128,8 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  Widget _buildTypeTile(ContractType type, String icon, String label) {
-    return RadioListTile<ContractType>(
+  Widget _buildTypeTile(legal.ContractType type, String icon, String label) {
+    return RadioListTile<legal.ContractType>(
       title: Text(label, style: const TextStyle(fontSize: 16)),
       secondary: Text(icon, style: const TextStyle(fontSize: 24)),
       value: type,
@@ -140,7 +140,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 2: عدد الأطراف
+  // 📌 الخطوة 2: إدارة الأطراف (مرونة غير محدودة)
   // ═══════════════════════════════════════════════════════════
   Widget _buildStep2() {
     return SingleChildScrollView(
@@ -149,13 +149,13 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            '👥 عدد الأطراف',
+            '👥 إدارة الأطراف',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           const Text(
-            'حدد عدد البائعين والمشترين في العقد',
+            'أضف أو احذف البائعين والمشترين حسب الحاجة',
             style: TextStyle(fontSize: 14, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
@@ -163,27 +163,83 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
           Card(
             elevation: 2,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _buildCounterRow(
-                    label: 'عدد البائعين',
-                    value: _sellerCount,
-                    onDecrement: () => setState(() { if (_sellerCount > 1) _sellerCount--; }),
-                    onIncrement: () => setState(() { if (_sellerCount < 5) _sellerCount++; }),
+                  // ─── البائعون ───
+                  Row(
+                    children: [
+                      const Text(
+                        'البائعون: ${_sellers.length}',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle, color: Colors.green),
+                        onPressed: () {
+                          setState(() {
+                            _sellers.add(legal.LegalParty(
+                              id: 'seller_${_sellers.length + 1}',
+                              fullName: '',
+                              nationalId: '',
+                              role: legal.PartyRole.seller,
+                              share: 0,
+                            ));
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () {
+                          if (_sellers.length > 1) {
+                            setState(() {
+                              _sellers.removeLast();
+                            });
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildCounterRow(
-                    label: 'عدد المشترين',
-                    value: _buyerCount,
-                    onDecrement: () => setState(() { if (_buyerCount > 1) _buyerCount--; }),
-                    onIncrement: () => setState(() { if (_buyerCount < 5) _buyerCount++; }),
+                  const SizedBox(height: 8),
+                  // ─── المشترون ───
+                  Row(
+                    children: [
+                      const Text(
+                        'المشترون: ${_buyers.length}',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle, color: Colors.green),
+                        onPressed: () {
+                          setState(() {
+                            _buyers.add(legal.LegalParty(
+                              id: 'buyer_${_buyers.length + 1}',
+                              fullName: '',
+                              nationalId: '',
+                              role: legal.PartyRole.buyer,
+                              share: 0,
+                            ));
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () {
+                          if (_buyers.length > 1) {
+                            setState(() {
+                              _buyers.removeLast();
+                            });
+                          }
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 8),
                   Text(
-                    'إجمالي الأطراف: ${_sellerCount + _buyerCount}',
+                    'إجمالي الأطراف: ${_sellers.length + _buyers.length}',
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     textAlign: TextAlign.center,
                   ),
@@ -193,83 +249,21 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () {
-              _sellers = List.generate(_sellerCount, (i) => LegalParty(
-                id: 'seller_${i + 1}',
-                fullName: '',
-                nationalId: '',
-                role: PartyRole.seller,
-                share: (2400 / _sellerCount).toDouble(),
-              ));
-              _buyers = List.generate(_buyerCount, (i) => LegalParty(
-                id: 'buyer_${i + 1}',
-                fullName: '',
-                nationalId: '',
-                role: PartyRole.buyer,
-                share: (2400 / _buyerCount).toDouble(),
-              ));
-              _goToStep(2);
-            },
+            onPressed: _goToNextStep,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1B4F72),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-            child: const Text('تأكيد وبدء إدخال البيانات'),
+            child: const Text('التالي'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCounterRow({
-    required String label,
-    required int value,
-    required VoidCallback onDecrement,
-    required VoidCallback onIncrement,
-  }) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Text(label, style: const TextStyle(fontSize: 16)),
-        ),
-        Expanded(
-          flex: 1,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                onPressed: onDecrement,
-              ),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    '$value',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-                onPressed: onIncrement,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 3 و 4: بيانات الأطراف
+  // 📌 الخطوة 3 و 4: بيانات الأطراف (ديناميكية)
   // ═══════════════════════════════════════════════════════════
   Widget _buildStep3() {
     return _buildPartiesStep(
@@ -289,8 +283,8 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
   Widget _buildPartiesStep({
     required String title,
-    required List<LegalParty> parties,
-    required Function(int, LegalParty) onUpdate,
+    required List<legal.LegalParty> parties,
+    required Function(int, legal.LegalParty) onUpdate,
   }) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -366,9 +360,9 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
   Widget _buildPartyCard({
     required int index,
-    required LegalParty party,
+    required legal.LegalParty party,
     required String title,
-    required Function(LegalParty) onUpdate,
+    required Function(legal.LegalParty) onUpdate,
   }) {
     final nameCtrl = TextEditingController(text: party.fullName);
     final idCtrl = TextEditingController(text: party.nationalId);
@@ -378,7 +372,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     final addressCtrl = TextEditingController(text: party.address);
     final shareCtrl = TextEditingController(text: party.share.toString());
 
-    LegalCapacity capacity = party.capacity;
+    legal.LegalCapacity capacity = party.capacity;
     bool isMinor = party.isMinor;
     bool isExpatriate = party.isExpatriate;
 
@@ -472,7 +466,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               onChanged: (v) => onUpdate(party.copyWith(share: double.tryParse(v) ?? 0)),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<LegalCapacity>(
+            DropdownButtonFormField<legal.LegalCapacity>(
               value: capacity,
               decoration: const InputDecoration(
                 labelText: 'الصفة القانونية',
@@ -480,10 +474,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                 isDense: true,
               ),
               items: const [
-                DropdownMenuItem(value: LegalCapacity.individual, child: Text('أصيل')),
-                DropdownMenuItem(value: LegalCapacity.guardian, child: Text('وصي شرعي')),
-                DropdownMenuItem(value: LegalCapacity.agent, child: Text('وكيل')),
-                DropdownMenuItem(value: LegalCapacity.legalEntity, child: Text('شخص اعتباري')),
+                DropdownMenuItem(value: legal.LegalCapacity.individual, child: Text('أصيل')),
+                DropdownMenuItem(value: legal.LegalCapacity.guardian, child: Text('وصي شرعي')),
+                DropdownMenuItem(value: legal.LegalCapacity.agent, child: Text('وكيل')),
+                DropdownMenuItem(value: legal.LegalCapacity.legalEntity, child: Text('شخص اعتباري')),
               ],
               onChanged: (v) {
                 if (v != null) {
@@ -641,7 +635,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   // 📌 الخطوة 6: المعاينة والتصدير
   // ═══════════════════════════════════════════════════════════
   Widget _buildStep6() {
-    final contractData = LegalContractData(
+    final contractData = legal.LegalContractData(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: _type,
       sellers: _sellers,
@@ -839,7 +833,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   // ✅ دالة تصدير PDF مرتبطة بالنظام الموجود
-  void _exportPdf(LegalContractData data) async {
+  void _exportPdf(legal.LegalContractData data) async {
     try {
       final contract = _convertToContract(data);
       final pdfService = PdfService();
@@ -865,7 +859,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   // ✅ دالة حفظ العقد
   void _saveContract() async {
     try {
-      final contractData = LegalContractData(
+      final contractData = legal.LegalContractData(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         type: _type,
         sellers: _sellers,
@@ -902,7 +896,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   // ✅ دالة تحويل LegalContractData إلى Contract
-  Contract _convertToContract(LegalContractData data) {
+  Contract _convertToContract(legal.LegalContractData data) {
     final sellers = data.sellers.map((p) => Person(
       id: p.id,
       fullName: p.fullName,
@@ -947,16 +941,25 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  ContractType _mapContractType(ContractType type) {
+  // ✅ دالة تحويل أنواع العقود
+  ContractType _mapContractType(legal.ContractType type) {
     switch (type) {
-      case ContractType.sale: return ContractType.directSale;
-      case ContractType.rent: return ContractType.settlement;
-      case ContractType.gift: return ContractType.settlement;
-      case ContractType.partnership: return ContractType.complexProperty;
-      case ContractType.vehicleSale: return ContractType.directSale;
-      case ContractType.vehicleRent: return ContractType.settlement;
-      case ContractType.agency: return ContractType.settlement;
-      default: return ContractType.directSale;
+      case legal.ContractType.sale:
+        return ContractType.directSale;
+      case legal.ContractType.rent:
+        return ContractType.settlement;
+      case legal.ContractType.gift:
+        return ContractType.settlement;
+      case legal.ContractType.partnership:
+        return ContractType.complexProperty;
+      case legal.ContractType.vehicleSale:
+        return ContractType.directSale;
+      case legal.ContractType.vehicleRent:
+        return ContractType.settlement;
+      case legal.ContractType.agency:
+        return ContractType.settlement;
+      default:
+        return ContractType.directSale;
     }
   }
 }
