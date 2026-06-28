@@ -27,32 +27,45 @@ class ContractProvider extends ChangeNotifier {
   List<Contract> get savedContracts => List.unmodifiable(_savedContracts);
   double get fontScale => _fontScale;
 
+  // دوال إدارة العقد الأساسية
   void updateType(ContractType type) { _manager.updateType(type); notifyListeners(); }
   void updateDate(String date) { _manager.updateDate(date); notifyListeners(); }
   void updateCity(String city) { _manager.updateCity(city); notifyListeners(); }
   void updateGovernorate(String gov) { _manager.updateGovernorate(gov); notifyListeners(); }
   void updateSeller(Person seller) { _manager.updateSeller(seller); notifyListeners(); }
   void updateBuyer(Person buyer) { _manager.updateBuyer(buyer); notifyListeners(); }
+
+  // ✅ دوال الإرث الجديدة
+  void updateDeceased(Person deceased) { _manager.updateDeceased(deceased); notifyListeners(); }
+  void updateIsInheritance(bool isInheritance) { _manager.updateIsInheritance(isInheritance); notifyListeners(); }
+
   void addWitness(Person witness) { _manager.addWitness(witness); notifyListeners(); }
   void removeWitness(int index) { _manager.removeWitness(index); notifyListeners(); }
   void clearWitnesses() { _manager.clearWitnesses(); notifyListeners(); }
   void updateProperty(Property property) { _manager.updateProperty(property); notifyListeners(); }
   void updatePayment(Payment payment) { _manager.updatePayment(payment); notifyListeners(); }
+
   void setHeirs(List<Heir> heirs) { _manager.setHeirs(heirs); notifyListeners(); }
   void addHeir(Heir heir) { _manager.addHeir(heir); notifyListeners(); }
   void removeHeir(int index) { _manager.removeHeir(index); notifyListeners(); }
   void updateHeir(int index, Heir heir) { _manager.updateHeir(index, heir); notifyListeners(); }
   void clearHeirs() { _manager.clearHeirs(); notifyListeners(); }
+
   void updateKalala(bool v) { _manager.updateKalala(v); notifyListeners(); }
   void updateWillExceedsThird(bool v) { _manager.updateWillExceedsThird(v); notifyListeners(); }
   void updateWillHasHeirConsent(bool v) { _manager.updateWillHasHeirConsent(v); notifyListeners(); }
   void updateJudgmentIsFinal(bool v) { _manager.updateJudgmentIsFinal(v); notifyListeners(); }
-  void setJudgment(String number, String date, String court) { _manager.setJudgment(number, date, court); notifyListeners(); }
+  void setJudgment(String number, String date, String court) {
+    _manager.setJudgment(number, date, court);
+    notifyListeners();
+  }
   void setReferenceNumber(String v) { _manager.setReferenceNumber(v); notifyListeners(); }
+
   void addClause(ContractClause clause) { _manager.addClause(clause); notifyListeners(); }
   void removeClause(int index) { _manager.removeClause(index); notifyListeners(); }
   void updateClause(int index, ContractClause clause) { _manager.updateClause(index, clause); notifyListeners(); }
   void clearClauses() { _manager.clearClauses(); notifyListeners(); }
+
   void addAnnex(ContractAnnex annex) { _manager.addAnnex(annex); notifyListeners(); }
   void removeAnnex(int index) { _manager.removeAnnex(index); notifyListeners(); }
 
