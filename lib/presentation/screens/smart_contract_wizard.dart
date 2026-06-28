@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection; // ✅ التصحيح: hide TextDirection
+import 'dart:ui' as ui;
 import '../../domain/models/legal_contract.dart' as legal;
 import '../../domain/models/contract.dart';
 import '../../domain/models/person.dart';
@@ -22,7 +23,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   int _step = 0;
   final int _totalSteps = 6;
 
-  // ─── بيانات العقد ───
   legal.ContractType _type = legal.ContractType.sale;
   List<legal.LegalParty> _sellers = [];
   List<legal.LegalParty> _buyers = [];
@@ -38,7 +38,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
   final PageController _pageController = PageController();
 
-  // ─── Controllers للإدارة الصحيحة للـ Text ───
   final List<TextEditingController> _sellerNameControllers = [];
   final List<TextEditingController> _sellerIdControllers = [];
   final List<TextEditingController> _sellerFatherControllers = [];
@@ -58,7 +57,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   @override
   void initState() {
     super.initState();
-    // تهيئة البائعين الافتراضيين
     _initializeSellers(1);
     _initializeBuyers(1);
   }
@@ -103,12 +101,13 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
     _sellers = [];
     for (int i = 0; i < count; i++) {
+      final double share = count > 0 ? (2400.0 / count) : 0.0;
       _sellers.add(legal.LegalParty(
         id: 'seller_${i + 1}',
         fullName: '',
         nationalId: '',
         role: legal.PartyRole.seller,
-        share: count > 0 ? (2400 / count).toDouble() : 0,
+        share: share,
       ));
       _sellerNameControllers.add(TextEditingController());
       _sellerIdControllers.add(TextEditingController());
@@ -116,9 +115,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       _sellerMotherControllers.add(TextEditingController());
       _sellerPhoneControllers.add(TextEditingController());
       _sellerAddressControllers.add(TextEditingController());
-      _sellerShareControllers.add(
-        TextEditingController(text: (2400 / count).toDouble().toString()),
-      );
+      _sellerShareControllers.add(TextEditingController(text: share.toString()));
     }
   }
 
@@ -133,12 +130,13 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
     _buyers = [];
     for (int i = 0; i < count; i++) {
+      final double share = count > 0 ? (2400.0 / count) : 0.0;
       _buyers.add(legal.LegalParty(
         id: 'buyer_${i + 1}',
         fullName: '',
         nationalId: '',
         role: legal.PartyRole.buyer,
-        share: count > 0 ? (2400 / count).toDouble() : 0,
+        share: share,
       ));
       _buyerNameControllers.add(TextEditingController());
       _buyerIdControllers.add(TextEditingController());
@@ -146,9 +144,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       _buyerMotherControllers.add(TextEditingController());
       _buyerPhoneControllers.add(TextEditingController());
       _buyerAddressControllers.add(TextEditingController());
-      _buyerShareControllers.add(
-        TextEditingController(text: (2400 / count).toDouble().toString()),
-      );
+      _buyerShareControllers.add(TextEditingController(text: share.toString()));
     }
   }
 
@@ -180,10 +176,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     }
   }
 
-  // ✅ إضافة بائع جديد
+  // ✅ التصحيح: استخدام double صريح
   void _addSeller() {
     setState(() {
-      final newShare = _sellers.isEmpty ? 2400 : (2400 / (_sellers.length + 1)).toDouble();
+      final double newShare = _sellers.isEmpty ? 2400.0 : (2400.0 / (_sellers.length + 1));
       _sellers.add(legal.LegalParty(
         id: 'seller_${_sellers.length + 1}',
         fullName: '',
@@ -198,16 +194,14 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       _sellerPhoneControllers.add(TextEditingController());
       _sellerAddressControllers.add(TextEditingController());
       _sellerShareControllers.add(TextEditingController(text: newShare.toString()));
-
-      // تحديث الحصص
       _updateAllShares();
     });
   }
 
-  // ✅ إضافة مشتري جديد
+  // ✅ التصحيح: استخدام double صريح
   void _addBuyer() {
     setState(() {
-      final newShare = _buyers.isEmpty ? 2400 : (2400 / (_buyers.length + 1)).toDouble();
+      final double newShare = _buyers.isEmpty ? 2400.0 : (2400.0 / (_buyers.length + 1));
       _buyers.add(legal.LegalParty(
         id: 'buyer_${_buyers.length + 1}',
         fullName: '',
@@ -222,12 +216,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       _buyerPhoneControllers.add(TextEditingController());
       _buyerAddressControllers.add(TextEditingController());
       _buyerShareControllers.add(TextEditingController(text: newShare.toString()));
-
       _updateAllShares();
     });
   }
 
-  // ✅ حذف بائع
   void _removeSeller(int index) {
     if (_sellers.length <= 1) return;
     setState(() {
@@ -246,12 +238,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       _sellerAddressControllers.removeAt(index);
       _sellerShareControllers[index].dispose();
       _sellerShareControllers.removeAt(index);
-
       _updateAllShares();
     });
   }
 
-  // ✅ حذف مشتري
   void _removeBuyer(int index) {
     if (_buyers.length <= 1) return;
     setState(() {
@@ -270,21 +260,20 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       _buyerAddressControllers.removeAt(index);
       _buyerShareControllers[index].dispose();
       _buyerShareControllers.removeAt(index);
-
       _updateAllShares();
     });
   }
 
   void _updateAllShares() {
     if (_sellers.isNotEmpty) {
-      final sellerShare = (2400 / _sellers.length).toDouble();
+      final double sellerShare = (2400.0 / _sellers.length);
       for (int i = 0; i < _sellers.length; i++) {
         _sellers[i] = _sellers[i].copyWith(share: sellerShare);
         _sellerShareControllers[i].text = sellerShare.toString();
       }
     }
     if (_buyers.isNotEmpty) {
-      final buyerShare = (2400 / _buyers.length).toDouble();
+      final double buyerShare = (2400.0 / _buyers.length);
       for (int i = 0; i < _buyers.length; i++) {
         _buyers[i] = _buyers[i].copyWith(share: buyerShare);
         _buyerShareControllers[i].text = buyerShare.toString();
@@ -336,9 +325,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 1: اختيار نوع العقد
-  // ═══════════════════════════════════════════════════════════
   Widget _buildStep1() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -390,9 +376,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 2: إدارة الأطراف (مرونة غير محدودة)
-  // ═══════════════════════════════════════════════════════════
   Widget _buildStep2() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -417,7 +400,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ─── البائعون ───
                   Row(
                     children: [
                       Text(
@@ -440,7 +422,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // ─── المشترون ───
                   Row(
                     children: [
                       Text(
@@ -489,9 +470,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 3: بيانات البائعين
-  // ═══════════════════════════════════════════════════════════
   Widget _buildStep3() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -528,9 +506,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 4: بيانات المشترين
-  // ═══════════════════════════════════════════════════════════
   Widget _buildStep4() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -567,7 +542,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ بطاقة بائع (مع RTL الصحيح)
   Widget _buildSellerCard(int index) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -593,7 +567,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               ],
             ),
             const Divider(),
-            // ✅ حقول RTL صحيحة بدون أي تعقيدات
             _buildRTLTextField(
               controller: _sellerNameControllers[index],
               label: 'الاسم الكامل *',
@@ -630,7 +603,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ بطاقة مشتري (مع RTL الصحيح)
   Widget _buildBuyerCard(int index) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -692,7 +664,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ دالة RTL صحيحة 100%
+  // ✅ حقل RTL صحيح 100%
   Widget _buildRTLTextField({
     required TextEditingController controller,
     required String label,
@@ -702,32 +674,26 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: TextFormField(
-          controller: controller,
-          textDirection: TextDirection.rtl,
-          textAlign: TextAlign.right,
-          keyboardType: type,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-            isDense: true,
-            filled: true,
-            fillColor: Colors.white,
-          ),
-          validator: required
-              ? (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null
-              : null,
+      child: TextFormField(
+        controller: controller,
+        textDirection: ui.TextDirection.rtl,
+        textAlign: TextAlign.right,
+        keyboardType: type,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          isDense: true,
+          filled: true,
+          fillColor: Colors.white,
         ),
+        validator: required
+            ? (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null
+            : null,
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 5: بيانات العقار والثمن
-  // ═══════════════════════════════════════════════════════════
   Widget _buildStep5() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -829,11 +795,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 6: المعاينة والتصدير
-  // ═══════════════════════════════════════════════════════════
   Widget _buildStep6() {
-    // تحديث البيانات من المتحكمات
     _updateSellersFromControllers();
     _updateBuyersFromControllers();
 
@@ -880,12 +842,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                   elevation: 2,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: SelectableText(
-                        contractText,
-                        style: const TextStyle(fontSize: 14, height: 1.8),
-                      ),
+                    child: SelectableText(
+                      contractText,
+                      style: const TextStyle(fontSize: 14, height: 1.8),
+                      textDirection: ui.TextDirection.rtl,
                     ),
                   ),
                 ),
@@ -940,10 +900,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 🛠️ دوال مساعدة
-  // ═══════════════════════════════════════════════════════════
-
   Widget _buildNavigationButtons() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -972,7 +928,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   void _goToStep(int step) {
-    // تحديث البيانات من المتحكمات عند التحرك بين الخطوات
     if (step == 3 || step == 4) {
       _updateSellersFromControllers();
       _updateBuyersFromControllers();
@@ -987,10 +942,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
   void _goToNextStep() {
     if (_step < _totalSteps - 1) {
-      // تحديث البيانات قبل الانتقال
-      if (_step == 2) {
-        // تحضير المتحكمات للبائعين والمشترين
-      }
       if (_step == 3 || _step == 4) {
         _updateSellersFromControllers();
         _updateBuyersFromControllers();
@@ -1015,19 +966,16 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('إضافة بند إضافي'),
-        content: Directionality(
-          textDirection: TextDirection.rtl,
-          child: TextField(
-            controller: controller,
-            textDirection: TextDirection.rtl,
-            textAlign: TextAlign.right,
-            decoration: const InputDecoration(
-              labelText: 'نص البند',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-            maxLines: 4,
+        content: TextField(
+          controller: controller,
+          textDirection: ui.TextDirection.rtl,
+          textAlign: TextAlign.right,
+          decoration: const InputDecoration(
+            labelText: 'نص البند',
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
+          maxLines: 4,
         ),
         actions: [
           TextButton(
@@ -1065,7 +1013,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       final contract = _convertToContract(data);
       final pdfService = PdfService();
       await pdfService.generate(contract);
-
       if (mounted) {
         Navigator.push(
           context,
