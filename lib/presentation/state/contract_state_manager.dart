@@ -5,19 +5,26 @@ import '../../domain/models/payment.dart';
 
 class ContractStateManager {
   Contract _contract;
-  ContractStateManager() : _contract = Contract(
-    id: DateTime.now().millisecondsSinceEpoch.toString(),
-    property: const Property(),
-    payment: const Payment(),
-  );
+
+  ContractStateManager()
+      : _contract = Contract(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          property: const Property(),
+          payment: const Payment(),
+        );
 
   Contract get contract => _contract;
+
   void updateType(ContractType type) => _contract = _contract.copyWith(type: type);
   void updateDate(String date) => _contract = _contract.copyWith(contractDate: date);
   void updateCity(String city) => _contract = _contract.copyWith(city: city);
   void updateGovernorate(String gov) => _contract = _contract.copyWith(governorate: gov);
   void updateSeller(Person seller) => _contract = _contract.copyWith(sellers: [seller]);
   void updateBuyer(Person buyer) => _contract = _contract.copyWith(buyers: [buyer]);
+
+  // ✅ دوال الإرث الجديدة
+  void updateDeceased(Person deceased) => _contract = _contract.copyWith(deceased: deceased);
+  void updateIsInheritance(bool isInheritance) => _contract = _contract.copyWith(isInheritance: isInheritance);
 
   void addWitness(Person witness) => _contract = _contract.copyWith(witnesses: [..._contract.witnesses, witness]);
   void removeWitness(int index) {
