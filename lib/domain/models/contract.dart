@@ -19,16 +19,25 @@ class Heir {
   final String relation;
 
   const Heir({
-    required this.person, required this.shares,
-    this.isKiller = false, this.isApostate = false, this.isPrisoner = false,
-    this.isIntersex = false, this.isPregnant = false, this.relation = '',
+    required this.person,
+    required this.shares,
+    this.isKiller = false,
+    this.isApostate = false,
+    this.isPrisoner = false,
+    this.isIntersex = false,
+    this.isPregnant = false,
+    this.relation = '',
   });
 
   Map<String, dynamic> toMap() => {
-    'person': person.toMap(), 'shares': shares,
-    'is_killer': isKiller ? 1 : 0, 'is_apostate': isApostate ? 1 : 0,
-    'is_prisoner': isPrisoner ? 1 : 0, 'is_intersex': isIntersex ? 1 : 0,
-    'is_pregnant': isPregnant ? 1 : 0, 'relation': relation,
+    'person': person.toMap(),
+    'shares': shares,
+    'is_killer': isKiller ? 1 : 0,
+    'is_apostate': isApostate ? 1 : 0,
+    'is_prisoner': isPrisoner ? 1 : 0,
+    'is_intersex': isIntersex ? 1 : 0,
+    'is_pregnant': isPregnant ? 1 : 0,
+    'relation': relation,
   };
 }
 
@@ -40,20 +49,29 @@ class ContractClause {
   final bool isEditable;
 
   const ContractClause({
-    required this.id, required this.titleAr, required this.bodyAr,
-    this.isVisible = true, this.isEditable = true,
+    required this.id,
+    required this.titleAr,
+    required this.bodyAr,
+    this.isVisible = true,
+    this.isEditable = true,
   });
 
   ContractClause copyWith({String? titleAr, String? bodyAr, bool? isVisible, bool? isEditable}) {
     return ContractClause(
-      id: id, titleAr: titleAr ?? this.titleAr, bodyAr: bodyAr ?? this.bodyAr,
-      isVisible: isVisible ?? this.isVisible, isEditable: isEditable ?? this.isEditable,
+      id: id,
+      titleAr: titleAr ?? this.titleAr,
+      bodyAr: bodyAr ?? this.bodyAr,
+      isVisible: isVisible ?? this.isVisible,
+      isEditable: isEditable ?? this.isEditable,
     );
   }
 
   Map<String, dynamic> toMap() => {
-    'id': id, 'title_ar': titleAr, 'body_ar': bodyAr,
-    'is_visible': isVisible ? 1 : 0, 'is_editable': isEditable ? 1 : 0,
+    'id': id,
+    'title_ar': titleAr,
+    'body_ar': bodyAr,
+    'is_visible': isVisible ? 1 : 0,
+    'is_editable': isEditable ? 1 : 0,
   };
 }
 
@@ -93,38 +111,76 @@ class Contract {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  // ✅ إضافة دعم الإرث
+  final Person? deceased;
+  final bool isInheritance;
+
   Contract({
     required this.id,
     this.type = ContractType.directSale,
-    this.contractDate = '', this.city = '', this.governorate = '',
-    this.sellers = const [], this.buyers = const [], this.witnesses = const [],
-    required this.property, required this.payment,
-    this.heirs = const [], this.isKalala = false,
-    this.willExceedsThird = false, this.willHasHeirConsent = false,
-    this.judgmentIsFinal = false, this.judgmentNumber = '',
-    this.judgmentDate = '', this.judgmentCourt = '',
-    this.customClauses = const [], this.annexes = const [],
-    this.status = 'draft', this.referenceNumber = '',
-    DateTime? createdAt, DateTime? updatedAt,
+    this.contractDate = '',
+    this.city = '',
+    this.governorate = '',
+    this.sellers = const [],
+    this.buyers = const [],
+    this.witnesses = const [],
+    required this.property,
+    required this.payment,
+    this.heirs = const [],
+    this.isKalala = false,
+    this.willExceedsThird = false,
+    this.willHasHeirConsent = false,
+    this.judgmentIsFinal = false,
+    this.judgmentNumber = '',
+    this.judgmentDate = '',
+    this.judgmentCourt = '',
+    this.customClauses = const [],
+    this.annexes = const [],
+    this.status = 'draft',
+    this.referenceNumber = '',
+    this.deceased,
+    this.isInheritance = false,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
   Contract copyWith({
-    ContractType? type, String? contractDate, String? city, String? governorate,
-    List<Person>? sellers, List<Person>? buyers, List<Person>? witnesses,
-    Property? property, Payment? payment, List<Heir>? heirs,
-    bool? isKalala, bool? willExceedsThird, bool? willHasHeirConsent,
-    bool? judgmentIsFinal, String? judgmentNumber, String? judgmentDate,
-    String? judgmentCourt, List<ContractClause>? customClauses,
-    List<ContractAnnex>? annexes, String? status, String? referenceNumber,
+    ContractType? type,
+    String? contractDate,
+    String? city,
+    String? governorate,
+    List<Person>? sellers,
+    List<Person>? buyers,
+    List<Person>? witnesses,
+    Property? property,
+    Payment? payment,
+    List<Heir>? heirs,
+    bool? isKalala,
+    bool? willExceedsThird,
+    bool? willHasHeirConsent,
+    bool? judgmentIsFinal,
+    String? judgmentNumber,
+    String? judgmentDate,
+    String? judgmentCourt,
+    List<ContractClause>? customClauses,
+    List<ContractAnnex>? annexes,
+    String? status,
+    String? referenceNumber,
+    Person? deceased,
+    bool? isInheritance,
   }) {
     return Contract(
-      id: id, type: type ?? this.type,
-      contractDate: contractDate ?? this.contractDate, city: city ?? this.city,
+      id: id,
+      type: type ?? this.type,
+      contractDate: contractDate ?? this.contractDate,
+      city: city ?? this.city,
       governorate: governorate ?? this.governorate,
-      sellers: sellers ?? this.sellers, buyers: buyers ?? this.buyers,
+      sellers: sellers ?? this.sellers,
+      buyers: buyers ?? this.buyers,
       witnesses: witnesses ?? this.witnesses,
-      property: property ?? this.property, payment: payment ?? this.payment,
+      property: property ?? this.property,
+      payment: payment ?? this.payment,
       heirs: heirs ?? this.heirs,
       isKalala: isKalala ?? this.isKalala,
       willExceedsThird: willExceedsThird ?? this.willExceedsThird,
@@ -137,27 +193,39 @@ class Contract {
       annexes: annexes ?? this.annexes,
       status: status ?? this.status,
       referenceNumber: referenceNumber ?? this.referenceNumber,
-      createdAt: createdAt, updatedAt: DateTime.now(),
+      deceased: deceased ?? this.deceased,
+      isInheritance: isInheritance ?? this.isInheritance,
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() => {
-    'id': id, 'type': type.index, 'contract_date': contractDate,
-    'city': city, 'governorate': governorate,
+    'id': id,
+    'type': type.index,
+    'contract_date': contractDate,
+    'city': city,
+    'governorate': governorate,
     'sellers': sellers.map((p) => p.toMap()).toList(),
     'buyers': buyers.map((p) => p.toMap()).toList(),
     'witnesses': witnesses.map((p) => p.toMap()).toList(),
-    'property': property.toMap(), 'payment': payment.toMap(),
+    'property': property.toMap(),
+    'payment': payment.toMap(),
     'heirs': heirs.map((h) => h.toMap()).toList(),
-    'is_kalala': isKalala ? 1 : 0, 'will_exceeds_third': willExceedsThird ? 1 : 0,
+    'is_kalala': isKalala ? 1 : 0,
+    'will_exceeds_third': willExceedsThird ? 1 : 0,
     'will_has_heir_consent': willHasHeirConsent ? 1 : 0,
     'judgment_is_final': judgmentIsFinal ? 1 : 0,
-    'judgment_number': judgmentNumber, 'judgment_date': judgmentDate,
+    'judgment_number': judgmentNumber,
+    'judgment_date': judgmentDate,
     'judgment_court': judgmentCourt,
     'custom_clauses': customClauses.map((c) => c.toMap()).toList(),
     'annexes': annexes.map((a) => a.toMap()).toList(),
-    'status': status, 'reference_number': referenceNumber,
+    'status': status,
+    'reference_number': referenceNumber,
     'created_at': createdAt.millisecondsSinceEpoch,
     'updated_at': updatedAt.millisecondsSinceEpoch,
+    'deceased': deceased?.toMap(),
+    'is_inheritance': isInheritance ? 1 : 0,
   };
 }
