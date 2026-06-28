@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui' as ui;  // ✅ استيراد TextDirection
 import '../../domain/models/legal_contract.dart' as legal;
 import '../../domain/models/contract.dart';
 import '../../domain/models/person.dart';
@@ -23,6 +22,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   int _step = 0;
   final int _totalSteps = 6;
 
+  // ─── بيانات العقد ───
   legal.ContractType _type = legal.ContractType.sale;
   List<legal.LegalParty> _sellers = [];
   List<legal.LegalParty> _buyers = [];
@@ -37,6 +37,260 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   List<String> _customClauses = [];
 
   final PageController _pageController = PageController();
+
+  // ─── Controllers للإدارة الصحيحة للـ Text ───
+  final List<TextEditingController> _sellerNameControllers = [];
+  final List<TextEditingController> _sellerIdControllers = [];
+  final List<TextEditingController> _sellerFatherControllers = [];
+  final List<TextEditingController> _sellerMotherControllers = [];
+  final List<TextEditingController> _sellerPhoneControllers = [];
+  final List<TextEditingController> _sellerAddressControllers = [];
+  final List<TextEditingController> _sellerShareControllers = [];
+
+  final List<TextEditingController> _buyerNameControllers = [];
+  final List<TextEditingController> _buyerIdControllers = [];
+  final List<TextEditingController> _buyerFatherControllers = [];
+  final List<TextEditingController> _buyerMotherControllers = [];
+  final List<TextEditingController> _buyerPhoneControllers = [];
+  final List<TextEditingController> _buyerAddressControllers = [];
+  final List<TextEditingController> _buyerShareControllers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // تهيئة البائعين الافتراضيين
+    _initializeSellers(1);
+    _initializeBuyers(1);
+  }
+
+  @override
+  void dispose() {
+    _disposeControllers(_sellerNameControllers);
+    _disposeControllers(_sellerIdControllers);
+    _disposeControllers(_sellerFatherControllers);
+    _disposeControllers(_sellerMotherControllers);
+    _disposeControllers(_sellerPhoneControllers);
+    _disposeControllers(_sellerAddressControllers);
+    _disposeControllers(_sellerShareControllers);
+
+    _disposeControllers(_buyerNameControllers);
+    _disposeControllers(_buyerIdControllers);
+    _disposeControllers(_buyerFatherControllers);
+    _disposeControllers(_buyerMotherControllers);
+    _disposeControllers(_buyerPhoneControllers);
+    _disposeControllers(_buyerAddressControllers);
+    _disposeControllers(_buyerShareControllers);
+
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _disposeControllers(List<TextEditingController> controllers) {
+    for (final controller in controllers) {
+      controller.dispose();
+    }
+    controllers.clear();
+  }
+
+  void _initializeSellers(int count) {
+    _disposeControllers(_sellerNameControllers);
+    _disposeControllers(_sellerIdControllers);
+    _disposeControllers(_sellerFatherControllers);
+    _disposeControllers(_sellerMotherControllers);
+    _disposeControllers(_sellerPhoneControllers);
+    _disposeControllers(_sellerAddressControllers);
+    _disposeControllers(_sellerShareControllers);
+
+    _sellers = [];
+    for (int i = 0; i < count; i++) {
+      _sellers.add(legal.LegalParty(
+        id: 'seller_${i + 1}',
+        fullName: '',
+        nationalId: '',
+        role: legal.PartyRole.seller,
+        share: count > 0 ? (2400 / count).toDouble() : 0,
+      ));
+      _sellerNameControllers.add(TextEditingController());
+      _sellerIdControllers.add(TextEditingController());
+      _sellerFatherControllers.add(TextEditingController());
+      _sellerMotherControllers.add(TextEditingController());
+      _sellerPhoneControllers.add(TextEditingController());
+      _sellerAddressControllers.add(TextEditingController());
+      _sellerShareControllers.add(
+        TextEditingController(text: (2400 / count).toDouble().toString()),
+      );
+    }
+  }
+
+  void _initializeBuyers(int count) {
+    _disposeControllers(_buyerNameControllers);
+    _disposeControllers(_buyerIdControllers);
+    _disposeControllers(_buyerFatherControllers);
+    _disposeControllers(_buyerMotherControllers);
+    _disposeControllers(_buyerPhoneControllers);
+    _disposeControllers(_buyerAddressControllers);
+    _disposeControllers(_buyerShareControllers);
+
+    _buyers = [];
+    for (int i = 0; i < count; i++) {
+      _buyers.add(legal.LegalParty(
+        id: 'buyer_${i + 1}',
+        fullName: '',
+        nationalId: '',
+        role: legal.PartyRole.buyer,
+        share: count > 0 ? (2400 / count).toDouble() : 0,
+      ));
+      _buyerNameControllers.add(TextEditingController());
+      _buyerIdControllers.add(TextEditingController());
+      _buyerFatherControllers.add(TextEditingController());
+      _buyerMotherControllers.add(TextEditingController());
+      _buyerPhoneControllers.add(TextEditingController());
+      _buyerAddressControllers.add(TextEditingController());
+      _buyerShareControllers.add(
+        TextEditingController(text: (2400 / count).toDouble().toString()),
+      );
+    }
+  }
+
+  void _updateSellersFromControllers() {
+    for (int i = 0; i < _sellers.length; i++) {
+      _sellers[i] = _sellers[i].copyWith(
+        fullName: _sellerNameControllers[i].text,
+        nationalId: _sellerIdControllers[i].text,
+        fatherName: _sellerFatherControllers[i].text,
+        motherName: _sellerMotherControllers[i].text,
+        phone: _sellerPhoneControllers[i].text,
+        address: _sellerAddressControllers[i].text,
+        share: double.tryParse(_sellerShareControllers[i].text) ?? 0,
+      );
+    }
+  }
+
+  void _updateBuyersFromControllers() {
+    for (int i = 0; i < _buyers.length; i++) {
+      _buyers[i] = _buyers[i].copyWith(
+        fullName: _buyerNameControllers[i].text,
+        nationalId: _buyerIdControllers[i].text,
+        fatherName: _buyerFatherControllers[i].text,
+        motherName: _buyerMotherControllers[i].text,
+        phone: _buyerPhoneControllers[i].text,
+        address: _buyerAddressControllers[i].text,
+        share: double.tryParse(_buyerShareControllers[i].text) ?? 0,
+      );
+    }
+  }
+
+  // ✅ إضافة بائع جديد
+  void _addSeller() {
+    setState(() {
+      final newShare = _sellers.isEmpty ? 2400 : (2400 / (_sellers.length + 1)).toDouble();
+      _sellers.add(legal.LegalParty(
+        id: 'seller_${_sellers.length + 1}',
+        fullName: '',
+        nationalId: '',
+        role: legal.PartyRole.seller,
+        share: newShare,
+      ));
+      _sellerNameControllers.add(TextEditingController());
+      _sellerIdControllers.add(TextEditingController());
+      _sellerFatherControllers.add(TextEditingController());
+      _sellerMotherControllers.add(TextEditingController());
+      _sellerPhoneControllers.add(TextEditingController());
+      _sellerAddressControllers.add(TextEditingController());
+      _sellerShareControllers.add(TextEditingController(text: newShare.toString()));
+
+      // تحديث الحصص
+      _updateAllShares();
+    });
+  }
+
+  // ✅ إضافة مشتري جديد
+  void _addBuyer() {
+    setState(() {
+      final newShare = _buyers.isEmpty ? 2400 : (2400 / (_buyers.length + 1)).toDouble();
+      _buyers.add(legal.LegalParty(
+        id: 'buyer_${_buyers.length + 1}',
+        fullName: '',
+        nationalId: '',
+        role: legal.PartyRole.buyer,
+        share: newShare,
+      ));
+      _buyerNameControllers.add(TextEditingController());
+      _buyerIdControllers.add(TextEditingController());
+      _buyerFatherControllers.add(TextEditingController());
+      _buyerMotherControllers.add(TextEditingController());
+      _buyerPhoneControllers.add(TextEditingController());
+      _buyerAddressControllers.add(TextEditingController());
+      _buyerShareControllers.add(TextEditingController(text: newShare.toString()));
+
+      _updateAllShares();
+    });
+  }
+
+  // ✅ حذف بائع
+  void _removeSeller(int index) {
+    if (_sellers.length <= 1) return;
+    setState(() {
+      _sellers.removeAt(index);
+      _sellerNameControllers[index].dispose();
+      _sellerNameControllers.removeAt(index);
+      _sellerIdControllers[index].dispose();
+      _sellerIdControllers.removeAt(index);
+      _sellerFatherControllers[index].dispose();
+      _sellerFatherControllers.removeAt(index);
+      _sellerMotherControllers[index].dispose();
+      _sellerMotherControllers.removeAt(index);
+      _sellerPhoneControllers[index].dispose();
+      _sellerPhoneControllers.removeAt(index);
+      _sellerAddressControllers[index].dispose();
+      _sellerAddressControllers.removeAt(index);
+      _sellerShareControllers[index].dispose();
+      _sellerShareControllers.removeAt(index);
+
+      _updateAllShares();
+    });
+  }
+
+  // ✅ حذف مشتري
+  void _removeBuyer(int index) {
+    if (_buyers.length <= 1) return;
+    setState(() {
+      _buyers.removeAt(index);
+      _buyerNameControllers[index].dispose();
+      _buyerNameControllers.removeAt(index);
+      _buyerIdControllers[index].dispose();
+      _buyerIdControllers.removeAt(index);
+      _buyerFatherControllers[index].dispose();
+      _buyerFatherControllers.removeAt(index);
+      _buyerMotherControllers[index].dispose();
+      _buyerMotherControllers.removeAt(index);
+      _buyerPhoneControllers[index].dispose();
+      _buyerPhoneControllers.removeAt(index);
+      _buyerAddressControllers[index].dispose();
+      _buyerAddressControllers.removeAt(index);
+      _buyerShareControllers[index].dispose();
+      _buyerShareControllers.removeAt(index);
+
+      _updateAllShares();
+    });
+  }
+
+  void _updateAllShares() {
+    if (_sellers.isNotEmpty) {
+      final sellerShare = (2400 / _sellers.length).toDouble();
+      for (int i = 0; i < _sellers.length; i++) {
+        _sellers[i] = _sellers[i].copyWith(share: sellerShare);
+        _sellerShareControllers[i].text = sellerShare.toString();
+      }
+    }
+    if (_buyers.isNotEmpty) {
+      final buyerShare = (2400 / _buyers.length).toDouble();
+      for (int i = 0; i < _buyers.length; i++) {
+        _buyers[i] = _buyers[i].copyWith(share: buyerShare);
+        _buyerShareControllers[i].text = buyerShare.toString();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +420,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                   // ─── البائعون ───
                   Row(
                     children: [
-                      // ✅ حذف const من Text
                       Text(
                         'البائعون: ${_sellers.length}',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -174,25 +427,13 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.add_circle, color: Colors.green),
-                        onPressed: () {
-                          setState(() {
-                            _sellers.add(legal.LegalParty(
-                              id: 'seller_${_sellers.length + 1}',
-                              fullName: '',
-                              nationalId: '',
-                              role: legal.PartyRole.seller,
-                              share: 0,
-                            ));
-                          });
-                        },
+                        onPressed: _addSeller,
                       ),
                       IconButton(
                         icon: const Icon(Icons.remove_circle, color: Colors.red),
                         onPressed: () {
                           if (_sellers.length > 1) {
-                            setState(() {
-                              _sellers.removeLast();
-                            });
+                            _removeSeller(_sellers.length - 1);
                           }
                         },
                       ),
@@ -202,7 +443,6 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                   // ─── المشترون ───
                   Row(
                     children: [
-                      // ✅ حذف const من Text
                       Text(
                         'المشترون: ${_buyers.length}',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -210,25 +450,13 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.add_circle, color: Colors.green),
-                        onPressed: () {
-                          setState(() {
-                            _buyers.add(legal.LegalParty(
-                              id: 'buyer_${_buyers.length + 1}',
-                              fullName: '',
-                              nationalId: '',
-                              role: legal.PartyRole.buyer,
-                              share: 0,
-                            ));
-                          });
-                        },
+                        onPressed: _addBuyer,
                       ),
                       IconButton(
                         icon: const Icon(Icons.remove_circle, color: Colors.red),
                         onPressed: () {
                           if (_buyers.length > 1) {
-                            setState(() {
-                              _buyers.removeLast();
-                            });
+                            _removeBuyer(_buyers.length - 1);
                           }
                         },
                       ),
@@ -262,55 +490,28 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 📌 الخطوة 3 و 4: بيانات الأطراف
+  // 📌 الخطوة 3: بيانات البائعين
   // ═══════════════════════════════════════════════════════════
   Widget _buildStep3() {
-    return _buildPartiesStep(
-      title: 'بيانات البائعين',
-      parties: _sellers,
-      onUpdate: (index, party) => setState(() => _sellers[index] = party),
-    );
-  }
-
-  Widget _buildStep4() {
-    return _buildPartiesStep(
-      title: 'بيانات المشترين',
-      parties: _buyers,
-      onUpdate: (index, party) => setState(() => _buyers[index] = party),
-    );
-  }
-
-  Widget _buildPartiesStep({
-    required String title,
-    required List<legal.LegalParty> parties,
-    required Function(int, legal.LegalParty) onUpdate,
-  }) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '📝 $title',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          const Text(
+            '📝 بيانات البائعين',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           const Text(
-            'أدخل بيانات كل طرف بالتفصيل',
+            'أدخل بيانات كل بائع بالتفصيل',
             style: TextStyle(fontSize: 14, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          ...parties.asMap().entries.map((entry) {
-            final index = entry.key;
-            final party = entry.value;
-            return _buildPartyCard(
-              index: index,
-              party: party,
-              title: '${title.split(' ').first} ${index + 1}',
-              onUpdate: (updated) => onUpdate(index, updated),
-            );
+          ...List.generate(_sellers.length, (index) {
+            return _buildSellerCard(index);
           }),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -327,53 +528,47 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     );
   }
 
-  // ✅ حقل نصي يعمل بشكل صحيح مع العربية
-  Widget _buildArabicTextField({
-    required TextEditingController controller,
-    required String label,
-    bool required = false,
-    TextInputType type = TextInputType.text,
-    int maxLines = 1,
-    ValueChanged<String>? onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: TextFormField(
-        controller: controller,
-        textAlign: TextAlign.right,  // ✅ كافٍ للعربية
-        keyboardType: type,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: required ? '$label *' : label,
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
-        onChanged: onChanged,
-        validator: required
-            ? (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null
-            : null,
+  // ═══════════════════════════════════════════════════════════
+  // 📌 الخطوة 4: بيانات المشترين
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildStep4() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            '📝 بيانات المشترين',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'أدخل بيانات كل مشترٍ بالتفصيل',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ...List.generate(_buyers.length, (index) {
+            return _buildBuyerCard(index);
+          }),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _goToNextStep,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1B4F72),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            child: const Text('التالي'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildPartyCard({
-    required int index,
-    required legal.LegalParty party,
-    required String title,
-    required Function(legal.LegalParty) onUpdate,
-  }) {
-    final nameCtrl = TextEditingController(text: party.fullName);
-    final idCtrl = TextEditingController(text: party.nationalId);
-    final fatherCtrl = TextEditingController(text: party.fatherName);
-    final motherCtrl = TextEditingController(text: party.motherName);
-    final phoneCtrl = TextEditingController(text: party.phone);
-    final addressCtrl = TextEditingController(text: party.address);
-    final shareCtrl = TextEditingController(text: party.share.toString());
-
-    legal.LegalCapacity capacity = party.capacity;
-    bool isMinor = party.isMinor;
-    bool isExpatriate = party.isExpatriate;
-
+  // ✅ بطاقة بائع (مع RTL الصحيح)
+  Widget _buildSellerCard(int index) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -386,133 +581,145 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               children: [
                 CircleAvatar(
                   backgroundColor: const Color(0xFF1B4F72),
-                  child: Text(
-                    '${index + 1}',
-                    style: const TextStyle(color: Colors.white),
-                  ),
+                  child: Text('${index + 1}', style: const TextStyle(color: Colors.white)),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                Text('بائع ${index + 1}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('حذف'),
-                        content: Text('هل أنت متأكد من حذف $title؟'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text('إلغاء'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              setState(() {});
-                            },
-                            child: const Text('حذف', style: TextStyle(color: Colors.red)),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeSeller(index),
                 ),
               ],
             ),
             const Divider(),
-            _buildArabicTextField(
-              controller: nameCtrl,
-              label: 'الاسم الكامل',
-              required: true,
-              onChanged: (v) => onUpdate(party.copyWith(fullName: v)),
+            // ✅ حقول RTL صحيحة بدون أي تعقيدات
+            _buildRTLTextField(
+              controller: _sellerNameControllers[index],
+              label: 'الاسم الكامل *',
             ),
-            _buildArabicTextField(
-              controller: fatherCtrl,
+            _buildRTLTextField(
+              controller: _sellerFatherControllers[index],
               label: 'اسم الأب',
-              onChanged: (v) => onUpdate(party.copyWith(fatherName: v)),
             ),
-            _buildArabicTextField(
-              controller: motherCtrl,
+            _buildRTLTextField(
+              controller: _sellerMotherControllers[index],
               label: 'اسم الأم',
-              onChanged: (v) => onUpdate(party.copyWith(motherName: v)),
             ),
-            _buildArabicTextField(
-              controller: idCtrl,
+            _buildRTLTextField(
+              controller: _sellerIdControllers[index],
               label: 'الرقم الوطني',
-              onChanged: (v) => onUpdate(party.copyWith(nationalId: v)),
             ),
-            _buildArabicTextField(
-              controller: phoneCtrl,
+            _buildRTLTextField(
+              controller: _sellerPhoneControllers[index],
               label: 'رقم الهاتف',
               type: TextInputType.phone,
-              onChanged: (v) => onUpdate(party.copyWith(phone: v)),
             ),
-            _buildArabicTextField(
-              controller: addressCtrl,
+            _buildRTLTextField(
+              controller: _sellerAddressControllers[index],
               label: 'العنوان',
-              onChanged: (v) => onUpdate(party.copyWith(address: v)),
             ),
-            _buildArabicTextField(
-              controller: shareCtrl,
+            _buildRTLTextField(
+              controller: _sellerShareControllers[index],
               label: 'الحصة (من 2400 سهم)',
               type: TextInputType.number,
-              onChanged: (v) => onUpdate(party.copyWith(share: double.tryParse(v) ?? 0)),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<legal.LegalCapacity>(
-              value: capacity,
-              decoration: const InputDecoration(
-                labelText: 'الصفة القانونية',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              items: const [
-                DropdownMenuItem(value: legal.LegalCapacity.individual, child: Text('أصيل')),
-                DropdownMenuItem(value: legal.LegalCapacity.guardian, child: Text('وصي شرعي')),
-                DropdownMenuItem(value: legal.LegalCapacity.agent, child: Text('وكيل')),
-                DropdownMenuItem(value: legal.LegalCapacity.legalEntity, child: Text('شخص اعتباري')),
-              ],
-              onChanged: (v) {
-                if (v != null) {
-                  capacity = v;
-                  onUpdate(party.copyWith(capacity: v));
-                }
-              },
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: SwitchListTile(
-                    title: const Text('قاصر'),
-                    value: isMinor,
-                    onChanged: (v) {
-                      isMinor = v;
-                      onUpdate(party.copyWith(isMinor: v));
-                    },
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                Expanded(
-                  child: SwitchListTile(
-                    title: const Text('مغترب'),
-                    value: isExpatriate,
-                    onChanged: (v) {
-                      isExpatriate = v;
-                      onUpdate(party.copyWith(isExpatriate: v));
-                    },
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ بطاقة مشتري (مع RTL الصحيح)
+  Widget _buildBuyerCard(int index) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: const Color(0xFF1B4F72),
+                  child: Text('${index + 1}', style: const TextStyle(color: Colors.white)),
+                ),
+                const SizedBox(width: 12),
+                Text('مشتري ${index + 1}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeBuyer(index),
+                ),
+              ],
+            ),
+            const Divider(),
+            _buildRTLTextField(
+              controller: _buyerNameControllers[index],
+              label: 'الاسم الكامل *',
+            ),
+            _buildRTLTextField(
+              controller: _buyerFatherControllers[index],
+              label: 'اسم الأب',
+            ),
+            _buildRTLTextField(
+              controller: _buyerMotherControllers[index],
+              label: 'اسم الأم',
+            ),
+            _buildRTLTextField(
+              controller: _buyerIdControllers[index],
+              label: 'الرقم الوطني',
+            ),
+            _buildRTLTextField(
+              controller: _buyerPhoneControllers[index],
+              label: 'رقم الهاتف',
+              type: TextInputType.phone,
+            ),
+            _buildRTLTextField(
+              controller: _buyerAddressControllers[index],
+              label: 'العنوان',
+            ),
+            _buildRTLTextField(
+              controller: _buyerShareControllers[index],
+              label: 'الحصة (من 2400 سهم)',
+              type: TextInputType.number,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ دالة RTL صحيحة 100%
+  Widget _buildRTLTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType type = TextInputType.text,
+    int maxLines = 1,
+    bool required = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: TextFormField(
+          controller: controller,
+          textDirection: TextDirection.rtl,
+          textAlign: TextAlign.right,
+          keyboardType: type,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            isDense: true,
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          validator: required
+              ? (v) => (v == null || v.trim().isEmpty) ? 'مطلوب' : null
+              : null,
         ),
       ),
     );
@@ -545,34 +752,29 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _buildArabicTextField(
+                  _buildRTLTextField(
                     controller: TextEditingController(text: _propertyNumber),
-                    label: 'رقم السجل العقاري',
+                    label: 'رقم السجل العقاري *',
                     required: true,
-                    onChanged: (v) => _propertyNumber = v,
                   ),
-                  _buildArabicTextField(
+                  _buildRTLTextField(
                     controller: TextEditingController(text: _propertyZone),
-                    label: 'المنطقة العقارية',
+                    label: 'المنطقة العقارية *',
                     required: true,
-                    onChanged: (v) => _propertyZone = v,
                   ),
-                  _buildArabicTextField(
+                  _buildRTLTextField(
                     controller: TextEditingController(text: _propertyAddress),
                     label: 'العنوان التفصيلي',
-                    onChanged: (v) => _propertyAddress = v,
                   ),
-                  _buildArabicTextField(
+                  _buildRTLTextField(
                     controller: TextEditingController(text: _propertyArea.toString()),
                     label: 'المساحة (م²)',
                     type: TextInputType.number,
-                    onChanged: (v) => _propertyArea = double.tryParse(v) ?? 0,
                   ),
-                  _buildArabicTextField(
+                  _buildRTLTextField(
                     controller: TextEditingController(text: _boundaries),
                     label: 'الحدود',
                     maxLines: 2,
-                    onChanged: (v) => _boundaries = v,
                   ),
                   const Divider(),
                   const Text(
@@ -580,18 +782,16 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
-                  _buildArabicTextField(
+                  _buildRTLTextField(
                     controller: TextEditingController(text: _totalPrice.toString()),
-                    label: 'الثمن الإجمالي (ل.س)',
+                    label: 'الثمن الإجمالي (ل.س) *',
                     type: TextInputType.number,
                     required: true,
-                    onChanged: (v) => _totalPrice = double.tryParse(v) ?? 0,
                   ),
-                  _buildArabicTextField(
+                  _buildRTLTextField(
                     controller: TextEditingController(text: _penaltyAmount.toString()),
                     label: 'الشرط الجزائي (ل.س)',
                     type: TextInputType.number,
-                    onChanged: (v) => _penaltyAmount = double.tryParse(v) ?? 0,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
@@ -633,6 +833,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   // 📌 الخطوة 6: المعاينة والتصدير
   // ═══════════════════════════════════════════════════════════
   Widget _buildStep6() {
+    // تحديث البيانات من المتحكمات
+    _updateSellersFromControllers();
+    _updateBuyersFromControllers();
+
     final contractData = legal.LegalContractData(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: _type,
@@ -676,10 +880,12 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                   elevation: 2,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: SelectableText(
-                      contractText,
-                      style: const TextStyle(fontSize: 14, height: 1.8),
-                      textDirection: ui.TextDirection.rtl,  // ✅ استخدام ui.TextDirection
+                    child: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: SelectableText(
+                        contractText,
+                        style: const TextStyle(fontSize: 14, height: 1.8),
+                      ),
                     ),
                   ),
                 ),
@@ -766,6 +972,11 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   void _goToStep(int step) {
+    // تحديث البيانات من المتحكمات عند التحرك بين الخطوات
+    if (step == 3 || step == 4) {
+      _updateSellersFromControllers();
+      _updateBuyersFromControllers();
+    }
     setState(() => _step = step);
     _pageController.animateToPage(
       step,
@@ -775,11 +986,27 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   void _goToNextStep() {
-    if (_step < _totalSteps - 1) _goToStep(_step + 1);
+    if (_step < _totalSteps - 1) {
+      // تحديث البيانات قبل الانتقال
+      if (_step == 2) {
+        // تحضير المتحكمات للبائعين والمشترين
+      }
+      if (_step == 3 || _step == 4) {
+        _updateSellersFromControllers();
+        _updateBuyersFromControllers();
+      }
+      _goToStep(_step + 1);
+    }
   }
 
   void _goToPreviousStep() {
-    if (_step > 0) _goToStep(_step - 1);
+    if (_step > 0) {
+      if (_step == 3 || _step == 4) {
+        _updateSellersFromControllers();
+        _updateBuyersFromControllers();
+      }
+      _goToStep(_step - 1);
+    }
   }
 
   void _addCustomClause() {
@@ -788,15 +1015,19 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('إضافة بند إضافي'),
-        content: TextField(
-          controller: controller,
-          textAlign: TextAlign.right,
-          decoration: const InputDecoration(
-            labelText: 'نص البند',
-            border: OutlineInputBorder(),
-            isDense: true,
+        content: Directionality(
+          textDirection: TextDirection.rtl,
+          child: TextField(
+            controller: controller,
+            textDirection: TextDirection.rtl,
+            textAlign: TextAlign.right,
+            decoration: const InputDecoration(
+              labelText: 'نص البند',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            maxLines: 4,
           ),
-          maxLines: 4,
         ),
         actions: [
           TextButton(
@@ -854,6 +1085,9 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
   void _saveContract() async {
     try {
+      _updateSellersFromControllers();
+      _updateBuyersFromControllers();
+
       final contractData = legal.LegalContractData(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         type: _type,
