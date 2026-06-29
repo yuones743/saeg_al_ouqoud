@@ -25,19 +25,18 @@ class SystemConfig {
   static ContractFontFamily _contractFont = ContractFontFamily.traditionalArabic;
   static ContractPageFormat _pageFormat = ContractPageFormat.a4;
 
-  // ─── إعدادات الطباعة ──────────────────────────────────────────────────────
-  static double _margin = 1.5;           // سم
-  static double _headerFontSize = 16;     // نقطة
-  static double _taxRate = 0.03;          // ضريبة البيوع (3% افتراضي)
+  static double _margin = 1.5;
+  static double _headerFontSize = 16;
+  static double _taxRate = 0.03;
 
-  // ─── القوانين حسب نوع العقد ─────────────────────────────────────────────
+  // ✅ استخدام النوع الصحيح: ContractType من contract.dart
   static final Map<ContractType, List<Map<String, String>>> _lawsByType = {
     ContractType.directSale: [
       {'title': 'قانون الاستثمار', 'number': '18/2021', 'clause': 'يخضع هذا العقد لأحكام قانون الاستثمار رقم 18 لعام 2021.'},
       {'title': 'قانون حماية المستهلك', 'number': '14/2015', 'clause': 'يخضع هذا العقد لأحكام قانون حماية المستهلك رقم 14 لعام 2015.'},
     ],
-    ContractType.rent: [
-      {'title': 'قانون الإيجار', 'number': '20/2015', 'clause': 'عقود الإيجار الخاضعة للقانون رقم 20 لعام 2015 تعتبر سنداً تنفيذياً لإخلاء العقار فور انتهاء المدة.'},
+    ContractType.settlement: [
+      {'title': 'قانون الوساطة', 'number': '15/2010', 'clause': 'يخضع هذا العقد لأحكام قانون الوساطة رقم 15 لعام 2010.'},
     ],
     ContractType.partition: [
       {'title': 'قانون القسمة', 'number': '1010 مدني', 'clause': 'تخضع القسمة لأحكام المادة 1010 من القانون المدني السوري.'},
@@ -45,9 +44,7 @@ class SystemConfig {
     ContractType.inheritanceAgreement: [
       {'title': 'الوصية الواجبة', 'number': '182 أحوال', 'clause': 'الوصية الواجبة لأولاد الابن المتوفى وفق المادة 182 من قانون الأحوال الشخصية.'},
     ],
-    ContractType.settlement: [
-      {'title': 'قانون الوساطة', 'number': '15/2010', 'clause': 'يخضع هذا العقد لأحكام قانون الوساطة رقم 15 لعام 2010.'},
-    ],
+    // ✅ لا تستخدم ContractType.rent لأنه غير موجود في هذا النوع
   };
 
   static ContractFontFamily get contractFont => _contractFont;
@@ -111,7 +108,7 @@ class SystemConfig {
     _savePrefs();
   }
 
-  // ─── دوال إدارة القوانين حسب نوع العقد ──────────────────────────────────
+  // ─── دوال إدارة القوانين ──────────────────────────────────────────────────
 
   static List<Map<String, String>> getLawsForType(ContractType type) {
     return _lawsByType[type] ?? [];
@@ -160,7 +157,6 @@ class SystemConfig {
       _headerFontSize = prefs.getDouble('header_font_size') ?? 16;
       _taxRate = prefs.getDouble('tax_rate') ?? 0.03;
 
-      // تحميل القوانين
       final lawsJson = prefs.getStringList('laws_by_type');
       if (lawsJson != null && lawsJson.isNotEmpty) {
         _lawsByType.clear();
@@ -194,7 +190,6 @@ class SystemConfig {
       await prefs.setDouble('header_font_size', _headerFontSize);
       await prefs.setDouble('tax_rate', _taxRate);
 
-      // حفظ القوانين
       final lawsJson = <String>[];
       for (final entry in _lawsByType.entries) {
         for (final law in entry.value) {
