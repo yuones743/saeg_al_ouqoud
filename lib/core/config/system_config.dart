@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../domain/models/contract.dart';
 
 enum ContractFontFamily {
   traditionalArabic,
@@ -27,7 +28,27 @@ class SystemConfig {
   // ─── إعدادات الطباعة ──────────────────────────────────────────────────────
   static double _margin = 1.5;           // سم
   static double _headerFontSize = 16;     // نقطة
-  static double _taxRate = 0.03;          // 3% ضريبة البيوع (قابلة للتعديل)
+  static double _taxRate = 0.03;          // ضريبة البيوع (3% افتراضي)
+
+  // ─── القوانين حسب نوع العقد ─────────────────────────────────────────────
+  static final Map<ContractType, List<Map<String, String>>> _lawsByType = {
+    ContractType.directSale: [
+      {'title': 'قانون الاستثمار', 'number': '18/2021', 'clause': 'يخضع هذا العقد لأحكام قانون الاستثمار رقم 18 لعام 2021.'},
+      {'title': 'قانون حماية المستهلك', 'number': '14/2015', 'clause': 'يخضع هذا العقد لأحكام قانون حماية المستهلك رقم 14 لعام 2015.'},
+    ],
+    ContractType.rent: [
+      {'title': 'قانون الإيجار', 'number': '20/2015', 'clause': 'عقود الإيجار الخاضعة للقانون رقم 20 لعام 2015 تعتبر سنداً تنفيذياً لإخلاء العقار فور انتهاء المدة.'},
+    ],
+    ContractType.partition: [
+      {'title': 'قانون القسمة', 'number': '1010 مدني', 'clause': 'تخضع القسمة لأحكام المادة 1010 من القانون المدني السوري.'},
+    ],
+    ContractType.inheritanceAgreement: [
+      {'title': 'الوصية الواجبة', 'number': '182 أحوال', 'clause': 'الوصية الواجبة لأولاد الابن المتوفى وفق المادة 182 من قانون الأحوال الشخصية.'},
+    ],
+    ContractType.settlement: [
+      {'title': 'قانون الوساطة', 'number': '15/2010', 'clause': 'يخضع هذا العقد لأحكام قانون الوساطة رقم 15 لعام 2010.'},
+    ],
+  };
 
   static ContractFontFamily get contractFont => _contractFont;
   static ContractPageFormat get pageFormat => _pageFormat;
@@ -85,10 +106,47 @@ class SystemConfig {
     _savePrefs();
   }
 
-  /// ✅ ضريبة البيوع مرنة (0% - 10%)
   static void setTaxRate(double value) {
     _taxRate = value.clamp(0.0, 0.10);
     _savePrefs();
+  }
+
+  // ─── دوال إدارة القوانين حسب نوع العقد ──────────────────────────────────
+
+  static List<Map<String, String>> getLawsForType(ContractType type) {
+    return _lawsByType[type] ?? [];
+  }
+
+  static void addLawForType(ContractType type, String title, String number, String clause) {
+    if (!_lawsByType.containsKey(type)) {
+      _lawsByType[type] = [];
+    }
+    _lawsByType[type]!.add({
+      'title': title,
+      'number': number,
+      'clause': clause,
+    });
+    _savePrefs();
+  }
+
+  static void removeLawForType(ContractType type, int index) {
+    final laws = _lawsByType[type];
+    if (laws != null && index >= 0 && index < laws.length) {
+      laws.removeAt(index);
+      _savePrefs();
+    }
+  }
+
+  static void updateLawForType(ContractType type, int index, String title, String number, String clause) {
+    final laws = _lawsByType[type];
+    if (laws != null && index >= 0 && index < laws.length) {
+      laws[index] = {
+        'title': title,
+        'number': number,
+        'clause': clause,
+      };
+      _savePrefs();
+    }
   }
 
   static Future<void> load() async {
@@ -101,6 +159,29 @@ class SystemConfig {
       _margin = prefs.getDouble('margin') ?? 1.5;
       _headerFontSize = prefs.getDouble('header_font_size') ?? 16;
       _taxRate = prefs.getDouble('tax_rate') ?? 0.03;
+
+      // تحميل القوانين
+      final lawsJson = prefs.getStringList('laws_by_type');
+      if (lawsJson != null && lawsJson.isNotEmpty) {
+        _lawsByType.clear();
+        for (final entry in lawsJson) {
+          final parts = entry.split('|||');
+          if (parts.length >= 4) {
+            final type = ContractType.values[int.tryParse(parts[0]) ?? 0];
+            final title = parts[1];
+            final number = parts[2];
+            final clause = parts[3];
+            if (!_lawsByType.containsKey(type)) {
+              _lawsByType[type] = [];
+            }
+            _lawsByType[type]!.add({
+              'title': title,
+              'number': number,
+              'clause': clause,
+            });
+          }
+        }
+      }
     } catch (_) {}
   }
 
@@ -112,6 +193,15 @@ class SystemConfig {
       await prefs.setDouble('margin', _margin);
       await prefs.setDouble('header_font_size', _headerFontSize);
       await prefs.setDouble('tax_rate', _taxRate);
+
+      // حفظ القوانين
+      final lawsJson = <String>[];
+      for (final entry in _lawsByType.entries) {
+        for (final law in entry.value) {
+          lawsJson.add('${entry.key.index}|||${law['title']}|||${law['number']}|||${law['clause']}');
+        }
+      }
+      await prefs.setStringList('laws_by_type', lawsJson);
     } catch (_) {}
   }
 }
