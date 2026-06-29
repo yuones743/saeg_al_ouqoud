@@ -95,46 +95,42 @@ class PdfService {
     return file;
   }
 
+  // ✅ الترويسة: بدون إطار، متمركزة، قابلة للتحكم بالحجم
   pw.Widget _buildHeader(Contract contract, bool blank, double headerSize) {
     return pw.Container(
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          top: pw.BorderSide(width: 0.5, color: PdfColors.black),
-          left: pw.BorderSide(width: 0.5, color: PdfColors.black),
-          right: pw.BorderSide(width: 0.5, color: PdfColors.black),
-        ),
-      ),
-      padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      alignment: pw.Alignment.center,
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Directionality(
         textDirection: pw.TextDirection.rtl,
-        child: pw.Column(children: [
-          pw.Text(
-            LegalPhrases.bismillah,
-            textAlign: pw.TextAlign.center,
-            style: pw.TextStyle(fontSize: headerSize, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(height: 2),
-          pw.Text(
-            blank ? 'قالب عقد فارغ' : _contractTitle(contract),
-            textAlign: pw.TextAlign.center,
-            style: pw.TextStyle(fontSize: headerSize * 0.7, fontWeight: pw.FontWeight.bold),
-          ),
-        ]),
+        child: pw.Column(
+          children: [
+            pw.Text(
+              LegalPhrases.bismillah,
+              textAlign: pw.TextAlign.center,
+              style: pw.TextStyle(
+                fontSize: headerSize,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 2),
+            pw.Text(
+              blank ? 'قالب عقد فارغ' : _contractTitle(contract),
+              textAlign: pw.TextAlign.center,
+              style: pw.TextStyle(
+                fontSize: headerSize * 0.7,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   pw.Widget _buildFooter(pw.Context context) {
     return pw.Container(
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          bottom: pw.BorderSide(width: 0.5, color: PdfColors.black),
-          left: pw.BorderSide(width: 0.5, color: PdfColors.black),
-          right: pw.BorderSide(width: 0.5, color: PdfColors.black),
-        ),
-      ),
-      padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 6),
       alignment: pw.Alignment.center,
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Directionality(
         textDirection: pw.TextDirection.rtl,
         child: pw.Text(
@@ -167,7 +163,7 @@ class PdfService {
     final isInheritance = contract.type == ContractType.inheritanceAgreement ||
                           contract.type == ContractType.judicialInheritance;
 
-    widgets.add(_divider());
+    // ── التمهيد ──
     widgets.add(_text(
       'في هذا اليوم الـ ${blank ? '___________' : (contract.contractDate.isEmpty ? '...' : contract.contractDate)}'
       ' في مدينة ${blank ? '___________' : (contract.city.isEmpty ? '...' : contract.city)}'
@@ -175,38 +171,36 @@ class PdfService {
       '، تم التعاقد ما بين:',
     ));
 
-    // ── البائعون ──
-    widgets.add(_sectionTitle(
-      contract.sellers.length > 1 ? 'الفريق الأول (البائعون)' : 'الفريق الأول (البائع)',
-      headerSize * 0.65,
-    ));
-    if (contract.sellers.isEmpty) {
-      widgets.add(_text('...'));
-    } else {
+    // ── الفريق الأول (البائعون) ──
+    if (contract.sellers.isNotEmpty) {
+      widgets.add(_sectionTitle(
+        contract.sellers.length > 1 ? 'الفريق الأول (البائعون)' : 'الفريق الأول (البائع)',
+        headerSize * 0.6,
+      ));
       for (var i = 0; i < contract.sellers.length; i++) {
         final share = _getSellerShare(contract, i);
-        widgets.add(_compactPerson(contract.sellers[i], blank, role: 'البائع', number: i + 1, share: share));
+        widgets.add(_compactPerson(contract.sellers[i], blank, role: contract.sellers.length > 1 ? 'البائع' : '', number: i + 1, share: share));
       }
+      widgets.add(_text(contract.sellers.length > 1 ? 'ويُشار إليهم مجتمعين بـ (البائعون).' : 'ويُشار إليه بـ (البائع).'));
     }
-    widgets.add(_text(contract.sellers.length > 1 ? 'ويُشار إليهم مجتمعين بـ (البائعون).' : 'ويُشار إليه بـ (البائع).'));
-    widgets.add(_divider());
 
-    // ── المشترون ──
+    // ── الفريق الثاني (المشترون) ──
     if (contract.buyers.isNotEmpty) {
       widgets.add(_sectionTitle(
         contract.buyers.length > 1 ? 'الفريق الثاني (المشترون)' : 'الفريق الثاني (المشتري)',
-        headerSize * 0.65,
+        headerSize * 0.6,
       ));
       for (var i = 0; i < contract.buyers.length; i++) {
         final share = _getBuyerShare(contract, i);
-        widgets.add(_compactPerson(contract.buyers[i], blank, role: 'المشتري', number: i + 1, share: share));
+        widgets.add(_compactPerson(contract.buyers[i], blank, role: contract.buyers.length > 1 ? 'المشتري' : '', number: i + 1, share: share));
       }
       widgets.add(_text(contract.buyers.length > 1 ? 'ويُشار إليهم مجتمعين بـ (المشترون).' : 'ويُشار إليه بـ (المشتري).'));
-      widgets.add(_divider());
     }
 
-    // ── المقدمة والعقار ──
-    widgets.add(_sectionTitle('المقدمة', headerSize * 0.65));
+    widgets.add(_divider());
+
+    // ── العقار ──
+    widgets.add(_sectionTitle('موضوع العقد', headerSize * 0.6));
     widgets.add(_compactProperty(contract, blank));
     widgets.add(_divider());
 
@@ -215,28 +209,20 @@ class PdfService {
         contract.type == ContractType.judicialInheritance ||
         contract.type == ContractType.judicialPartition ||
         contract.type == ContractType.judicialExit) {
-      widgets.add(_sectionTitle('بيانات الحكم القضائي', headerSize * 0.65));
+      widgets.add(_sectionTitle('بيانات الحكم القضائي', headerSize * 0.6));
       widgets.add(_judicialBlock(contract, blank));
       widgets.add(_divider());
     }
 
     // ── الورثة ──
     if (isInheritance) {
-      widgets.add(_sectionTitle('الورثة', headerSize * 0.65));
+      widgets.add(_sectionTitle('الورثة', headerSize * 0.6));
       widgets.add(_heirsBlock(contract, blank));
       widgets.add(_divider());
     }
 
-    // ── الوحدات العقارية ──
-    if (contract.type == ContractType.complexProperty) {
-      widgets.add(_sectionTitle('تفاصيل الوحدات العقارية', headerSize * 0.65));
-      for (final c in contract.customClauses.where((cl) => cl.isVisible)) {
-        widgets.add(_bullet('${c.titleAr} – ${c.bodyAr}'));
-      }
-      widgets.add(_divider());
-    }
-
-    // ── البنود الأساسية ──
+    // ── البنود ──
+    widgets.add(_sectionTitle('البنود', headerSize * 0.6));
     widgets.add(_compactClauses(contract, blank));
 
     // ── البنود الإضافية ──
@@ -244,12 +230,12 @@ class PdfService {
       widgets.add(_bullet('${clause.titleAr}: ${blank ? '___________' : clause.bodyAr}'));
     }
 
-    // ── ✅ عرض القوانين حسب نوع العقد ──────────────────────────────────────
+    // ── ✅ القوانين الواجبة التطبيق ──
     if (!blank) {
       final type = contract.type;
       final laws = SystemConfig.getLawsForType(type);
       if (laws.isNotEmpty) {
-        widgets.add(_sectionTitle('القوانين الواجبة التطبيق', headerSize * 0.65));
+        widgets.add(_sectionTitle('القوانين الواجبة التطبيق', headerSize * 0.6));
         for (final law in laws) {
           widgets.add(_bullet('${law['clause']}'));
         }
@@ -259,7 +245,6 @@ class PdfService {
 
     // ── التنبيه القانوني ──
     widgets.add(_legalNotice());
-    widgets.add(_divider());
 
     // ── التواقيع ──
     widgets.add(_signaturesBlock(contract, blank));
@@ -272,22 +257,23 @@ class PdfService {
     return widgets;
   }
 
+  // ✅ شخص مدمج في سطر واحد
   pw.Widget _compactPerson(Person p, bool blank, {required String role, required int number, required double share}) {
     String v(String val) => blank ? '___________' : (val.isEmpty ? '...' : val);
-    final shareText = share > 0 ? '، حصته: ${ArabicTextHelpers.toArabicDigits(share)} سهماً (من 2400)' : '';
-    final capacityText = p.hasPowerOfAttorney ? ' (وكيل)' : '';
-    final poaText = p.hasPowerOfAttorney ? '، وكيل عن: ${v(p.poaNumber)} (${v(p.poaDate)})' : '';
+    final shareText = share > 0 ? '، حصته: ${ArabicTextHelpers.toArabicDigits(share)} سهماً' : '';
+    final roleText = role.isNotEmpty ? '$role $number: ' : '';
+    final poaText = p.hasPowerOfAttorney ? '، وكيل عن: ${v(p.poaNumber)}' : '';
     final minorText = p.isMinor ? ' (قاصر)' : '';
     final expatText = p.isExpatriate ? ' (مغترب)' : '';
+    final statusText = p.isDeceased ? ' (متوفى)' : '';
 
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 1),
       child: pw.Directionality(
         textDirection: pw.TextDirection.rtl,
         child: pw.Text(
-          '$role $number: ${v(p.fullName)} بن ${v(p.fatherName)} والدته ${v(p.motherName)}، '
-          'الرقم الوطني: ${v(p.nationalId)}، هاتف: ${v(p.phone)}، العنوان: ${v(p.address)}'
-          '$shareText$capacityText$poaText$minorText$expatText',
+          '$roleText${v(p.fullName)}، الرقم الوطني: ${v(p.nationalId)}، هاتف: ${v(p.phone)}، العنوان: ${v(p.address)}'
+          '$shareText$poaText$minorText$expatText$statusText',
           style: const pw.TextStyle(fontSize: 9),
         ),
       ),
@@ -311,6 +297,7 @@ class PdfService {
     return 0;
   }
 
+  // ✅ عقار مدمج
   pw.Widget _compactProperty(Contract c, bool blank) {
     final p = c.property;
     String v(String val) => blank ? '___________' : (val.isEmpty ? '...' : val);
@@ -330,6 +317,7 @@ class PdfService {
     );
   }
 
+  // ✅ بنود مدمجة مع ضريبة مرنة
   pw.Widget _compactClauses(Contract c, bool blank) {
     final price = blank ? '___________' : ArabicTextHelpers.toArabicDigits(c.payment.totalPrice);
     final paid = blank ? '___________' : ArabicTextHelpers.toArabicDigits(c.payment.paidAmount);
