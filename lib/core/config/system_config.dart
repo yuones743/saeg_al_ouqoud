@@ -29,7 +29,8 @@ class SystemConfig {
   static double _headerFontSize = 16;
   static double _taxRate = 0.03;
 
-  // ✅ استخدام النوع الصحيح: ContractType من contract.dart
+  // ─── القوانين حسب نوع العقد ─────────────────────────────────────────────
+  // ✅ استخدم ContractType من contract.dart (النوع الأساسي للتطبيق)
   static final Map<ContractType, List<Map<String, String>>> _lawsByType = {
     ContractType.directSale: [
       {'title': 'قانون الاستثمار', 'number': '18/2021', 'clause': 'يخضع هذا العقد لأحكام قانون الاستثمار رقم 18 لعام 2021.'},
@@ -45,6 +46,7 @@ class SystemConfig {
       {'title': 'الوصية الواجبة', 'number': '182 أحوال', 'clause': 'الوصية الواجبة لأولاد الابن المتوفى وفق المادة 182 من قانون الأحوال الشخصية.'},
     ],
     // ✅ لا تستخدم ContractType.rent لأنه غير موجود في هذا النوع
+    // ✅ يمكن إضافة المزيد حسب الحاجة عبر LawManagerScreen
   };
 
   static ContractFontFamily get contractFont => _contractFont;
