@@ -21,6 +21,7 @@ class _WizardConstants {
 
 class SmartContractWizard extends StatefulWidget {
   const SmartContractWizard({super.key});
+
   @override
   State<SmartContractWizard> createState() => _SmartContractWizardState();
 }
@@ -157,7 +158,9 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     _sellers = [];
     _sellerIdCounter = 0;
 
-    for (int i = 0; i < count; i++) _appendSeller();
+    for (int i = 0; i < count; i++) {
+      _appendSeller();
+    }
     _recalcShares(_sellers, _sellerShareControllers);
   }
 
@@ -177,7 +180,9 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     _buyers = [];
     _buyerIdCounter = 0;
 
-    for (int i = 0; i < count; i++) _appendBuyer();
+    for (int i = 0; i < count; i++) {
+      _appendBuyer();
+    }
     _recalcShares(_buyers, _buyerShareControllers);
   }
 
@@ -236,11 +241,17 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   }
 
   void _addSeller() {
-    setState(() { _appendSeller(); _recalcShares(_sellers, _sellerShareControllers); });
+    setState(() {
+      _appendSeller();
+      _recalcShares(_sellers, _sellerShareControllers);
+    });
   }
 
   void _addBuyer() {
-    setState(() { _appendBuyer(); _recalcShares(_buyers, _buyerShareControllers); });
+    setState(() {
+      _appendBuyer();
+      _recalcShares(_buyers, _buyerShareControllers);
+    });
   }
 
   void _removeSeller(int index) {
@@ -288,7 +299,8 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     list.removeAt(index);
   }
 
-  void _recalcShares(List<legal.LegalParty> parties, List<TextEditingController> shareControllers) {
+  void _recalcShares(
+      List<legal.LegalParty> parties, List<TextEditingController> shareControllers) {
     if (parties.isEmpty) return;
     final n = parties.length;
     final base = _WizardConstants.totalShares ~/ n;
@@ -364,15 +376,22 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     if (_step == 4) _syncProperty();
     if (targetStep == 5) _refreshContractText();
     setState(() => _step = targetStep);
-    _pageController.animateToPage(targetStep, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _pageController.animateToPage(
+        targetStep,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut);
   }
 
   bool _validateCurrentStep() {
     switch (_step) {
-      case 2: return _sellersFormKey.currentState?.validate() ?? true;
-      case 3: return _buyersFormKey.currentState?.validate() ?? true;
-      case 4: return _propertyFormKey.currentState?.validate() ?? true;
-      default: return true;
+      case 2:
+        return _sellersFormKey.currentState?.validate() ?? true;
+      case 3:
+        return _buyersFormKey.currentState?.validate() ?? true;
+      case 4:
+        return _propertyFormKey.currentState?.validate() ?? true;
+      default:
+        return true;
     }
   }
 
@@ -386,7 +405,10 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       if (_step == 3) _syncBuyers();
       if (_step == 4) _syncProperty();
       setState(() => _step--);
-      _pageController.animateToPage(_step, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      _pageController.animateToPage(
+          _step,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut);
     }
   }
 
@@ -453,14 +475,22 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
   ContractType _mapContractType(legal.ContractType type) {
     switch (type) {
-      case legal.ContractType.sale: return ContractType.directSale;
-      case legal.ContractType.rent: return ContractType.settlement;
-      case legal.ContractType.gift: return ContractType.settlement;
-      case legal.ContractType.partnership: return ContractType.complexProperty;
-      case legal.ContractType.vehicleSale: return ContractType.directSale;
-      case legal.ContractType.vehicleRent: return ContractType.settlement;
-      case legal.ContractType.agency: return ContractType.settlement;
-      default: return ContractType.directSale;
+      case legal.ContractType.sale:
+        return ContractType.directSale;
+      case legal.ContractType.rent:
+        return ContractType.settlement;
+      case legal.ContractType.gift:
+        return ContractType.settlement;
+      case legal.ContractType.partnership:
+        return ContractType.complexProperty;
+      case legal.ContractType.vehicleSale:
+        return ContractType.directSale;
+      case legal.ContractType.vehicleRent:
+        return ContractType.settlement;
+      case legal.ContractType.agency:
+        return ContractType.settlement;
+      default:
+        return ContractType.directSale;
     }
   }
 
@@ -469,9 +499,17 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       _refreshContractText();
       final contract = _convertToContract(_buildContractData());
       await context.read<ContractProvider>().saveContract(contract);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ العقد بنجاح'), backgroundColor: Colors.green));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم حفظ العقد بنجاح'), backgroundColor: Colors.green),
+        );
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في الحفظ: $e'), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في الحفظ: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -479,9 +517,18 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
     try {
       final contract = _convertToContract(_buildContractData());
       await PdfService().generate(contract);
-      if (mounted) Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfPreviewScreen()));
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PdfPreviewScreen()),
+        );
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في التصدير: $e'), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في التصدير: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -503,11 +550,20 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () { controller.dispose(); Navigator.pop(ctx); }, child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () {
+              controller.dispose();
+              Navigator.pop(ctx);
+            },
+            child: const Text('إلغاء'),
+          ),
           ElevatedButton(
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
-                setState(() { _customClauses.add(controller.text.trim()); _refreshContractText(); });
+                setState(() {
+                  _customClauses.add(controller.text.trim());
+                  _refreshContractText();
+                });
                 controller.dispose();
                 Navigator.pop(ctx);
               }
@@ -525,8 +581,16 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
 
   Future<void> _shareContractText(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ نص العقد إلى الحافظة')));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم نسخ نص العقد إلى الحافظة')),
+      );
+    }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // واجهة المستخدم
+  // ═══════════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -537,7 +601,11 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
         foregroundColor: Colors.white,
         actions: [
           if (_step == _WizardConstants.totalSteps - 1)
-            IconButton(icon: const Icon(Icons.save), onPressed: _saveContract, tooltip: 'حفظ العقد'),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _saveContract,
+              tooltip: 'حفظ العقد',
+            ),
         ],
       ),
       body: Column(children: [
@@ -569,27 +637,40 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   Widget _buildStep1() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('📋 اختر نوع العقد', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-        const SizedBox(height: 8),
-        const Text('اختر نوع العقد الذي تريد إنشاؤه', style: TextStyle(fontSize: 14, color: Colors.grey), textAlign: TextAlign.center),
-        const SizedBox(height: 24),
-        Card(
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(children: [
-              _buildTypeTile(legal.ContractType.sale, '🏠', 'بيع عقاري قطعي'),
-              _buildTypeTile(legal.ContractType.rent, '🔑', 'إيجار عقاري'),
-              _buildTypeTile(legal.ContractType.gift, '🎁', 'هبة عقارية'),
-              _buildTypeTile(legal.ContractType.partnership, '🏗️', 'مشاركة بناء'),
-              _buildTypeTile(legal.ContractType.vehicleSale, '🚗', 'بيع مركبة'),
-              _buildTypeTile(legal.ContractType.vehicleRent, '🚙', 'إيجار مركبة'),
-              _buildTypeTile(legal.ContractType.agency, '📜', 'وكالة غير قابلة للعزل'),
-            ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            '📋 اختر نوع العقد',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
-        ),
-      ]),
+          const SizedBox(height: 8),
+          const Text(
+            'اختر نوع العقد الذي تريد إنشاؤه',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                children: [
+                  _buildTypeTile(legal.ContractType.sale, '🏠', 'بيع عقاري قطعي'),
+                  _buildTypeTile(legal.ContractType.rent, '🔑', 'إيجار عقاري'),
+                  _buildTypeTile(legal.ContractType.gift, '🎁', 'هبة عقارية'),
+                  _buildTypeTile(legal.ContractType.partnership, '🏗️', 'مشاركة بناء'),
+                  _buildTypeTile(legal.ContractType.vehicleSale, '🚗', 'بيع مركبة'),
+                  _buildTypeTile(legal.ContractType.vehicleRent, '🚙', 'إيجار مركبة'),
+                  _buildTypeTile(legal.ContractType.agency, '📜', 'وكالة غير قابلة للعزل'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -607,47 +688,73 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
   Widget _buildStep2() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('👥 إدارة الأطراف', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-        const SizedBox(height: 8),
-        const Text('أضف أو احذف البائعين والمشترين حسب الحاجة', style: TextStyle(fontSize: 14, color: Colors.grey), textAlign: TextAlign.center),
-        const SizedBox(height: 24),
-        Card(
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(children: [
-              _partyCountRow(
-                label: 'البائعون: ${_sellers.length}',
-                onAdd: _addSeller,
-                onRemove: () { if (_sellers.length > 1) _removeSeller(_sellers.length - 1); },
-              ),
-              const SizedBox(height: 8),
-              _partyCountRow(
-                label: 'المشترون: ${_buyers.length}',
-                onAdd: _addBuyer,
-                onRemove: () { if (_buyers.length > 1) _removeBuyer(_buyers.length - 1); },
-              ),
-              const Divider(height: 24),
-              Text(
-                'إجمالي الأطراف: ${_sellers.length + _buyers.length}',
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-              ),
-            ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            '👥 إدارة الأطراف',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
-        ),
-      ]),
+          const SizedBox(height: 8),
+          const Text(
+            'أضف أو احذف البائعين والمشترين حسب الحاجة',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _partyCountRow(
+                    label: 'البائعون: ${_sellers.length}',
+                    onAdd: _addSeller,
+                    onRemove: () {
+                      if (_sellers.length > 1) _removeSeller(_sellers.length - 1);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _partyCountRow(
+                    label: 'المشترون: ${_buyers.length}',
+                    onAdd: _addBuyer,
+                    onRemove: () {
+                      if (_buyers.length > 1) _removeBuyer(_buyers.length - 1);
+                    },
+                  ),
+                  const Divider(height: 24),
+                  Text(
+                    'إجمالي الأطراف: ${_sellers.length + _buyers.length}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _partyCountRow({required String label, required VoidCallback onAdd, required VoidCallback onRemove}) {
-    return Row(children: [
-      Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      const Spacer(),
-      IconButton(icon: const Icon(Icons.add_circle, color: Colors.green), onPressed: onAdd),
-      IconButton(icon: const Icon(Icons.remove_circle, color: Colors.red), onPressed: onRemove),
-    ]);
+  Widget _partyCountRow(
+      {required String label,
+      required VoidCallback onAdd,
+      required VoidCallback onRemove}) {
+    return Row(
+      children: [
+        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const Spacer(),
+        IconButton(
+            icon: const Icon(Icons.add_circle, color: Colors.green),
+            onPressed: onAdd),
+        IconButton(
+            icon: const Icon(Icons.remove_circle, color: Colors.red),
+            onPressed: onRemove),
+      ],
+    );
   }
 
   Widget _buildStep3() {
@@ -656,33 +763,44 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('📝 بيانات البائعين', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          const Text('أدخل بيانات كل بائع بالتفصيل', style: TextStyle(fontSize: 14, color: Colors.grey), textAlign: TextAlign.center),
-          const SizedBox(height: 24),
-          ...List.generate(_sellers.length, (i) => _buildPartyCard(
-            index: i,
-            title: 'بائع ${i + 1}',
-            isSeller: true,
-            nameCtrl: _sellerNameControllers[i],
-            fatherCtrl: _sellerFatherControllers[i],
-            motherCtrl: _sellerMotherControllers[i],
-            idCtrl: _sellerIdControllers[i],
-            phoneCtrl: _sellerPhoneControllers[i],
-            addressCtrl: _sellerAddressControllers[i],
-            shareCtrl: _sellerShareControllers[i],
-            capacity: _sellerCapacities[i],
-            poaNumberCtrl: _sellerPoaNumberControllers[i],
-            poaDateCtrl: _sellerPoaDateControllers[i],
-            isMinor: _sellerIsMinor[i],
-            isExpatriate: _sellerIsExpatriate[i],
-            onUpdateCapacity: (v) => setState(() => _sellerCapacities[i] = v),
-            onUpdateMinor: (v) => setState(() => _sellerIsMinor[i] = v),
-            onUpdateExpatriate: (v) => setState(() => _sellerIsExpatriate[i] = v),
-            onDelete: () => _removeSeller(i),
-          )),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              '📝 بيانات البائعين',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'أدخل بيانات كل بائع بالتفصيل',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ...List.generate(_sellers.length, (i) => _buildPartyCard(
+                  index: i,
+                  title: 'بائع ${i + 1}',
+                  isSeller: true,
+                  nameCtrl: _sellerNameControllers[i],
+                  fatherCtrl: _sellerFatherControllers[i],
+                  motherCtrl: _sellerMotherControllers[i],
+                  idCtrl: _sellerIdControllers[i],
+                  phoneCtrl: _sellerPhoneControllers[i],
+                  addressCtrl: _sellerAddressControllers[i],
+                  shareCtrl: _sellerShareControllers[i],
+                  capacity: _sellerCapacities[i],
+                  poaNumberCtrl: _sellerPoaNumberControllers[i],
+                  poaDateCtrl: _sellerPoaDateControllers[i],
+                  isMinor: _sellerIsMinor[i],
+                  isExpatriate: _sellerIsExpatriate[i],
+                  onUpdateCapacity: (v) => setState(() => _sellerCapacities[i] = v),
+                  onUpdateMinor: (v) => setState(() => _sellerIsMinor[i] = v),
+                  onUpdateExpatriate: (v) => setState(() => _sellerIsExpatriate[i] = v),
+                  onDelete: () => _removeSeller(i),
+                )),
+          ],
+        ),
       ),
     );
   }
@@ -693,33 +811,44 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('📝 بيانات المشترين', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          const Text('أدخل بيانات كل مشترٍ بالتفصيل', style: TextStyle(fontSize: 14, color: Colors.grey), textAlign: TextAlign.center),
-          const SizedBox(height: 24),
-          ...List.generate(_buyers.length, (i) => _buildPartyCard(
-            index: i,
-            title: 'مشتري ${i + 1}',
-            isSeller: false,
-            nameCtrl: _buyerNameControllers[i],
-            fatherCtrl: _buyerFatherControllers[i],
-            motherCtrl: _buyerMotherControllers[i],
-            idCtrl: _buyerIdControllers[i],
-            phoneCtrl: _buyerPhoneControllers[i],
-            addressCtrl: _buyerAddressControllers[i],
-            shareCtrl: _buyerShareControllers[i],
-            capacity: _buyerCapacities[i],
-            poaNumberCtrl: _buyerPoaNumberControllers[i],
-            poaDateCtrl: _buyerPoaDateControllers[i],
-            isMinor: _buyerIsMinor[i],
-            isExpatriate: _buyerIsExpatriate[i],
-            onUpdateCapacity: (v) => setState(() => _buyerCapacities[i] = v),
-            onUpdateMinor: (v) => setState(() => _buyerIsMinor[i] = v),
-            onUpdateExpatriate: (v) => setState(() => _buyerIsExpatriate[i] = v),
-            onDelete: () => _removeBuyer(i),
-          )),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              '📝 بيانات المشترين',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'أدخل بيانات كل مشترٍ بالتفصيل',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ...List.generate(_buyers.length, (i) => _buildPartyCard(
+                  index: i,
+                  title: 'مشتري ${i + 1}',
+                  isSeller: false,
+                  nameCtrl: _buyerNameControllers[i],
+                  fatherCtrl: _buyerFatherControllers[i],
+                  motherCtrl: _buyerMotherControllers[i],
+                  idCtrl: _buyerIdControllers[i],
+                  phoneCtrl: _buyerPhoneControllers[i],
+                  addressCtrl: _buyerAddressControllers[i],
+                  shareCtrl: _buyerShareControllers[i],
+                  capacity: _buyerCapacities[i],
+                  poaNumberCtrl: _buyerPoaNumberControllers[i],
+                  poaDateCtrl: _buyerPoaDateControllers[i],
+                  isMinor: _buyerIsMinor[i],
+                  isExpatriate: _buyerIsExpatriate[i],
+                  onUpdateCapacity: (v) => setState(() => _buyerCapacities[i] = v),
+                  onUpdateMinor: (v) => setState(() => _buyerIsMinor[i] = v),
+                  onUpdateExpatriate: (v) => setState(() => _buyerIsExpatriate[i] = v),
+                  onDelete: () => _removeBuyer(i),
+                )),
+          ],
+        ),
       ),
     );
   }
@@ -753,27 +882,46 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(children: [
-              CircleAvatar(
-                backgroundColor: _WizardConstants.primaryColor,
-                child: Text('${index + 1}', style: const TextStyle(color: Colors.white)),
-              ),
-              const SizedBox(width: 12),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const Spacer(),
-              IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: onDelete),
-            ]),
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: _WizardConstants.primaryColor,
+                  child: Text(
+                    '${index + 1}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
             const Divider(),
-            _buildRTLField(controller: nameCtrl, label: 'الاسم الكامل', isRequired: true),
+            _buildRTLField(
+                controller: nameCtrl, label: 'الاسم الكامل', isRequired: true),
             _buildRTLField(controller: fatherCtrl, label: 'اسم الأب'),
             _buildRTLField(controller: motherCtrl, label: 'اسم الأم'),
             _buildRTLField(controller: idCtrl, label: 'الرقم الوطني'),
-            _buildRTLField(controller: phoneCtrl, label: 'رقم الهاتف', type: TextInputType.phone),
+            _buildRTLField(
+                controller: phoneCtrl,
+                label: 'رقم الهاتف',
+                type: TextInputType.phone),
             _buildRTLField(controller: addressCtrl, label: 'العنوان'),
-            _buildRTLField(controller: shareCtrl, label: 'الحصة (من 2400 سهم)', type: TextInputType.number),
+            _buildRTLField(
+                controller: shareCtrl,
+                label: 'الحصة (من 2400 سهم)',
+                type: TextInputType.number),
 
             const SizedBox(height: 8),
 
+            // ─── الصفة القانونية ────────────────────────────────────────────
             DropdownButtonFormField<legal.LegalCapacity>(
               value: capacity,
               decoration: const InputDecoration(
@@ -782,16 +930,24 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
                 isDense: true,
               ),
               items: const [
-                DropdownMenuItem(value: legal.LegalCapacity.individual, child: Text('أصيل')),
-                DropdownMenuItem(value: legal.LegalCapacity.guardian, child: Text('وصي شرعي')),
-                DropdownMenuItem(value: legal.LegalCapacity.agent, child: Text('وكيل')),
-                DropdownMenuItem(value: legal.LegalCapacity.legalEntity, child: Text('شخص اعتباري')),
+                DropdownMenuItem(
+                    value: legal.LegalCapacity.individual,
+                    child: Text('أصيل')),
+                DropdownMenuItem(
+                    value: legal.LegalCapacity.guardian,
+                    child: Text('وصي شرعي')),
+                DropdownMenuItem(
+                    value: legal.LegalCapacity.agent, child: Text('وكيل')),
+                DropdownMenuItem(
+                    value: legal.LegalCapacity.legalEntity,
+                    child: Text('شخص اعتباري')),
               ],
               onChanged: (v) {
                 if (v != null) onUpdateCapacity(v);
               },
             ),
 
+            // ─── حقول الوكالة (تظهر فقط للوكيل) ────────────────────────────
             if (capacity == legal.LegalCapacity.agent) ...[
               _buildRTLField(
                 controller: poaNumberCtrl,
@@ -805,6 +961,7 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
               ),
             ],
 
+            // ─── قاصر ومغترب ────────────────────────────────────────────────
             Row(
               children: [
                 Expanded(
@@ -839,106 +996,172 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('🏠 بيانات العقار والثمن', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          const Text('أدخل تفاصيل العقار وقيمة العقد', style: TextStyle(fontSize: 14, color: Colors.grey), textAlign: TextAlign.center),
-          const SizedBox(height: 24),
-          Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(children: [
-                _buildRTLField(controller: _cityCtrl, label: 'المدينة', isRequired: true),
-                _buildRTLField(controller: _governorateCtrl, label: 'المحافظة', isRequired: true),
-                _buildRTLField(controller: _propertyNumberCtrl, label: 'رقم السجل العقاري', isRequired: true),
-                _buildRTLField(controller: _propertyZoneCtrl, label: 'المنطقة العقارية', isRequired: true),
-                _buildRTLField(controller: _propertyAddressCtrl, label: 'العنوان التفصيلي'),
-                _buildRTLField(controller: _propertyAreaCtrl, label: 'المساحة (م²)', type: TextInputType.number),
-                _buildRTLField(controller: _boundariesCtrl, label: 'الحدود', maxLines: 2),
-                const Divider(),
-                const Text('البيانات المالية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 8),
-                _buildRTLField(controller: _totalPriceCtrl, label: 'الثمن الإجمالي (ل.س)', isRequired: true, type: TextInputType.number),
-                _buildRTLField(controller: _penaltyAmountCtrl, label: 'الشرط الجزائي (ل.س)', type: TextInputType.number),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: DropdownButtonFormField<String>(
-                    value: _paymentMethod,
-                    decoration: const InputDecoration(labelText: 'طريقة الدفع', border: OutlineInputBorder(), isDense: true),
-                    items: const [
-                      DropdownMenuItem(value: 'نقداً', child: Text('نقداً')),
-                      DropdownMenuItem(value: 'بنكي', child: Text('تحويل بنكي')),
-                      DropdownMenuItem(value: 'تقسيط', child: Text('تقسيط')),
-                    ],
-                    onChanged: (v) => setState(() => _paymentMethod = v!),
-                  ),
-                ),
-              ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              '🏠 بيانات العقار والثمن',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ]),
+            const SizedBox(height: 8),
+            const Text(
+              'أدخل تفاصيل العقار وقيمة العقد',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildRTLField(
+                        controller: _cityCtrl,
+                        label: 'المدينة',
+                        isRequired: true),
+                    _buildRTLField(
+                        controller: _governorateCtrl,
+                        label: 'المحافظة',
+                        isRequired: true),
+                    _buildRTLField(
+                        controller: _propertyNumberCtrl,
+                        label: 'رقم السجل العقاري',
+                        isRequired: true),
+                    _buildRTLField(
+                        controller: _propertyZoneCtrl,
+                        label: 'المنطقة العقارية',
+                        isRequired: true),
+                    _buildRTLField(
+                        controller: _propertyAddressCtrl,
+                        label: 'العنوان التفصيلي'),
+                    _buildRTLField(
+                        controller: _propertyAreaCtrl,
+                        label: 'المساحة (م²)',
+                        type: TextInputType.number),
+                    _buildRTLField(
+                        controller: _boundariesCtrl,
+                        label: 'الحدود',
+                        maxLines: 2),
+                    const Divider(),
+                    const Text(
+                      'البيانات المالية',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildRTLField(
+                        controller: _totalPriceCtrl,
+                        label: 'الثمن الإجمالي (ل.س)',
+                        isRequired: true,
+                        type: TextInputType.number),
+                    _buildRTLField(
+                        controller: _penaltyAmountCtrl,
+                        label: 'الشرط الجزائي (ل.س)',
+                        type: TextInputType.number),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: DropdownButtonFormField<String>(
+                        value: _paymentMethod,
+                        decoration: const InputDecoration(
+                          labelText: 'طريقة الدفع',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                              value: 'نقداً', child: Text('نقداً')),
+                          DropdownMenuItem(
+                              value: 'بنكي', child: Text('تحويل بنكي')),
+                          DropdownMenuItem(
+                              value: 'تقسيط', child: Text('تقسيط')),
+                        ],
+                        onChanged: (v) => setState(() => _paymentMethod = v!),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildStep6() {
     final contractText = _cachedContractText ?? '...';
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Expanded(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('📄 معاينة العقد', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            const Text('راجع العقد النهائي قبل التصدير', style: TextStyle(fontSize: 14, color: Colors.grey), textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SelectableText(
-                  contractText,
-                  style: const TextStyle(fontSize: 14, height: 1.8),
-                  textDirection: ui.TextDirection.rtl,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  '📄 معاينة العقد',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
-              ),
+                const SizedBox(height: 8),
+                const Text(
+                  'راجع العقد النهائي قبل التصدير',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SelectableText(
+                      contractText,
+                      style: const TextStyle(fontSize: 14, height: 1.8),
+                      textDirection: ui.TextDirection.rtl,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.add),
+                        label: const Text('بند إضافي'),
+                        onPressed: _addCustomClause,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.share),
+                        label: const Text('مشاركة نص'),
+                        onPressed: () => _shareContractText(contractText),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('بند إضافي'),
-                  onPressed: _addCustomClause,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.share),
-                  label: const Text('مشاركة نص'),
-                  onPressed: () => _shareContractText(contractText),
-                ),
-              ),
-            ]),
-          ]),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(16),
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.picture_as_pdf),
-          label: const Text('تصدير PDF'),
-          onPressed: _exportPdf,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _WizardConstants.primaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
           ),
         ),
-      ),
-    ]);
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.picture_as_pdf),
+            label: const Text('تصدير PDF'),
+            onPressed: _exportPdf,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _WizardConstants.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildNavigationButtons() {
@@ -948,21 +1171,23 @@ class _SmartContractWizardState extends State<SmartContractWizard> {
         color: Colors.grey.shade50,
         border: Border(top: BorderSide(color: Colors.grey.shade300)),
       ),
-      child: Row(children: [
-        if (_step > 0)
-          TextButton.icon(
-            icon: const Icon(Icons.arrow_forward_ios, size: 16),
-            label: const Text('السابق'),
-            onPressed: _goToPreviousStep,
-          ),
-        const Spacer(),
-        if (_step < _WizardConstants.totalSteps - 1)
-          TextButton.icon(
-            icon: const Icon(Icons.arrow_back_ios, size: 16),
-            label: const Text('التالي'),
-            onPressed: _goToNextStep,
-          ),
-      ]),
+      child: Row(
+        children: [
+          if (_step > 0)
+            TextButton.icon(
+              icon: const Icon(Icons.arrow_forward_ios, size: 16),
+              label: const Text('السابق'),
+              onPressed: _goToPreviousStep,
+            ),
+          const Spacer(),
+          if (_step < _WizardConstants.totalSteps - 1)
+            TextButton.icon(
+              icon: const Icon(Icons.arrow_back_ios, size: 16),
+              label: const Text('التالي'),
+              onPressed: _goToNextStep,
+            ),
+        ],
+      ),
     );
   }
 
