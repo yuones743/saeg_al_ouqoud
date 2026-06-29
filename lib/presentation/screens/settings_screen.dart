@@ -75,7 +75,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-
+// في قسم الإعدادات، بعد قسم حجم الورقة
+Card(
+  child: Padding(
+    padding: const EdgeInsets.all(12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('ضريبة البيوع العقارية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        const Divider(),
+        Row(children: [
+          const Text('النسبة:'),
+          Expanded(
+            child: Slider(
+              value: SystemConfig.taxRate * 100,
+              min: 0,
+              max: 10,
+              divisions: 20,
+              label: '${(SystemConfig.taxRate * 100).toStringAsFixed(1)}%',
+              onChanged: (v) => SystemConfig.setTaxRate(v / 100),
+            ),
+          ),
+          Text('${(SystemConfig.taxRate * 100).toStringAsFixed(1)}%'),
+        ]),
+        const Text('(0% لإلغاء الضريبة، القيمة الافتراضية 3%)', style: TextStyle(fontSize: 10, color: Colors.grey)),
+      ],
+    ),
+  ),
+),
           // ─── قسم المواصفات التقنية (من AboutAdvancedScreen) ───
           Card(
             child: Padding(
