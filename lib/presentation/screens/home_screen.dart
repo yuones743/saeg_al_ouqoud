@@ -165,6 +165,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Card(
+  color: Colors.green.shade700,
+  child: InkWell(
+    onTap: () => Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LawManagerScreen()),
+    ),
+    borderRadius: BorderRadius.circular(8),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          const Icon(Icons.gavel, color: Colors.white, size: 32),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  '⚖️ إدارة القوانين',
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'أضف أو عدل القوانين المطبقة حسب نوع العقد',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward, color: Colors.white),
+        ],
+      ),
+    ),
+  ),
+),
+  
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
       child: SafeArea(
