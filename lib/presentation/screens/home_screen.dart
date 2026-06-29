@@ -19,7 +19,8 @@ import 'settings_screen.dart';
 import 'help_screen.dart';
 import 'about_screen.dart';
 import 'quick_contract_wizard.dart';
-import 'smart_contract_wizard.dart'; // ✅ إضافة الاستيراد الجديد
+import 'smart_contract_wizard.dart';
+import 'law_manager_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -62,8 +63,12 @@ class _HomeScreenState extends State<HomeScreen> {
           _StatsRow(),
           const SizedBox(height: 16),
 
-          // ─── 🧠 مولد العقود الذكي (جديد) ───
+          // ─── 🧠 مولد العقود الذكي ───
           _buildSmartWizardButton(context),
+          const SizedBox(height: 12),
+
+          // ─── ⚖️ إدارة القوانين ───
+          _buildLawManagerButton(context),
           const SizedBox(height: 12),
 
           _sectionHeader('الإجراءات السريعة'),
@@ -110,23 +115,25 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.amber.shade300),
             ),
-            child: const Row(children: [
-              Icon(Icons.info, color: Colors.amber),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'ملاحظة: التحذيرات تظهر داخل التطبيق فقط ولا تُطبع على العقد. يمكن توليد العقد في جميع الأحوال.',
-                  style: TextStyle(fontSize: 11, color: Colors.amber),
+            child: const Row(
+              children: [
+                Icon(Icons.info, color: Colors.amber),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'ملاحظة: التحذيرات تظهر داخل التطبيق فقط ولا تُطبع على العقد. يمكن توليد العقد في جميع الأحوال.',
+                    style: TextStyle(fontSize: 11, color: Colors.amber),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ─── 🧠 زر مولد العقود الذكي ───
+  // ─── 🧠 مولد العقود الذكي ──────────────────────────────────────────────────
   Widget _buildSmartWizardButton(BuildContext context) {
     return Card(
       color: const Color(0xFF1B4F72),
@@ -165,113 +172,146 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Card(
-  color: Colors.green.shade700,
-  child: InkWell(
-    onTap: () => Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const LawManagerScreen()),
-    ),
-    borderRadius: BorderRadius.circular(8),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          const Icon(Icons.gavel, color: Colors.white, size: 32),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  '⚖️ إدارة القوانين',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+  // ─── ⚖️ إدارة القوانين ────────────────────────────────────────────────────
+  Widget _buildLawManagerButton(BuildContext context) {
+    return Card(
+      color: Colors.green.shade700,
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LawManagerScreen()),
+        ),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Icon(Icons.gavel, color: Colors.white, size: 32),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      '⚖️ إدارة القوانين',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'أضف أو عدل القوانين المطبقة حسب نوع العقد',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
                 ),
-                Text(
-                  'أضف أو عدل القوانين المطبقة حسب نوع العقد',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
-            ),
+              ),
+              const Icon(Icons.arrow_forward, color: Colors.white),
+            ],
           ),
-          const Icon(Icons.arrow_forward, color: Colors.white),
-        ],
-      ),
-    ),
-  ),
-),
-  
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      child: SafeArea(
-        child: Column(children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            color: Theme.of(context).colorScheme.primary,
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.gavel, color: Colors.white, size: 36),
-                SizedBox(height: 8),
-                Text('صائغ العقود السوري', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                Text('نظام قرارات قانونية أوفلاين', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              ],
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text('دليل الاستخدام'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('عن التطبيق'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('الإعدادات'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
-            },
-          ),
-          const Divider(),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              'الإصدار ${SystemConfig.appVersion}',
-              style: const TextStyle(color: Colors.grey, fontSize: 11),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ]),
+        ),
       ),
     );
   }
 
-  Widget _sectionHeader(String title) => Padding(
-    padding: const EdgeInsets.only(bottom: 8, top: 4),
-    child: Row(children: [
-      const Expanded(child: Divider(color: Colors.black26)),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black54)),
+  // ─── القائمة الجانبية ──────────────────────────────────────────────────────
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              color: Theme.of(context).colorScheme.primary,
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.gavel, color: Colors.white, size: 36),
+                  SizedBox(height: 8),
+                  Text(
+                    'صائغ العقود السوري',
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'نظام قرارات قانونية أوفلاين',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('دليل الاستخدام'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HelpScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('عن التطبيق'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AboutScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('الإعدادات'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+            ),
+            const Divider(),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                'الإصدار ${SystemConfig.appVersion}',
+                style: const TextStyle(color: Colors.grey, fontSize: 11),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
       ),
-      const Expanded(child: Divider(color: Colors.black26)),
-    ]),
-  );
+    );
+  }
 
-  Widget _gridBtn(BuildContext context, String label, IconData icon, Color color, ContractType type) {
+  // ─── دوال مساعدة ──────────────────────────────────────────────────────────
+  Widget _sectionHeader(String title) => Padding(
+        padding: const EdgeInsets.only(bottom: 8, top: 4),
+        child: Row(
+          children: [
+            const Expanded(child: Divider(color: Colors.black26)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black54),
+              ),
+            ),
+            const Expanded(child: Divider(color: Colors.black26)),
+          ],
+        ),
+      );
+
+  Widget _gridBtn(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    ContractType type,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: ElevatedButton.icon(
@@ -285,13 +325,22 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           context.read<ContractProvider>().reset();
           context.read<ContractProvider>().updateType(type);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => _screenForType(type)));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => _screenForType(type)),
+          );
         },
       ),
     );
   }
 
-  Widget _btn(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _btn(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -309,22 +358,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _screenForType(ContractType type) {
     switch (type) {
-      case ContractType.usufructSale: return const UsufructContractScreen();
-      case ContractType.commonShareSale: return const CommonShareScreen();
+      case ContractType.usufructSale:
+        return const UsufructContractScreen();
+      case ContractType.commonShareSale:
+        return const CommonShareScreen();
       case ContractType.inheritanceAgreement:
-      case ContractType.judicialInheritance: return const InheritanceContractScreen();
+      case ContractType.judicialInheritance:
+        return const InheritanceContractScreen();
       case ContractType.partition:
-      case ContractType.judicialPartition: return const PartitionContractScreen();
-      case ContractType.settlement: return const SettlementContractScreen();
-      case ContractType.promise: return const PromiseContractScreen();
+      case ContractType.judicialPartition:
+        return const PartitionContractScreen();
+      case ContractType.settlement:
+        return const SettlementContractScreen();
+      case ContractType.promise:
+        return const PromiseContractScreen();
       case ContractType.judicialSale:
-      case ContractType.judicialExit: return const JudicialContractScreen();
-      case ContractType.complexProperty: return const ComplexPropertyScreen();
-      default: return const SimpleContractScreen();
+      case ContractType.judicialExit:
+        return const JudicialContractScreen();
+      case ContractType.complexProperty:
+        return const ComplexPropertyScreen();
+      default:
+        return const SimpleContractScreen();
     }
   }
 }
 
+// ─── ويدجت البطاقة العلوية ────────────────────────────────────────────────────
 class _HeroCard extends StatelessWidget {
   const _HeroCard();
 
@@ -360,37 +419,40 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
+// ─── صف الإحصائيات ────────────────────────────────────────────────────────────
 class _StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ContractProvider>();
-    return Row(children: [
-      Expanded(
-        child: StatCard(
-          label: 'عقود محفوظة',
-          value: ArabicTextHelpers.toArabicDigits(provider.savedContracts.length),
-          icon: Icons.folder,
-          color: Colors.blue,
+    return Row(
+      children: [
+        Expanded(
+          child: StatCard(
+            label: 'عقود محفوظة',
+            value: ArabicTextHelpers.toArabicDigits(provider.savedContracts.length),
+            icon: Icons.folder,
+            color: Colors.blue,
+          ),
         ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: StatCard(
-          label: 'قوالب جاهزة',
-          value: '١٢',
-          icon: Icons.description,
-          color: Colors.green,
+        const SizedBox(width: 8),
+        Expanded(
+          child: StatCard(
+            label: 'قوالب جاهزة',
+            value: '١٢',
+            icon: Icons.description,
+            color: Colors.green,
+          ),
         ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: StatCard(
-          label: 'تحذيرات',
-          value: '٢٦',
-          icon: Icons.warning_amber,
-          color: Colors.orange,
+        const SizedBox(width: 8),
+        Expanded(
+          child: StatCard(
+            label: 'تحذيرات',
+            value: '٢٦',
+            icon: Icons.warning_amber,
+            color: Colors.orange,
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
