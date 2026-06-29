@@ -236,12 +236,25 @@ class PdfService {
       widgets.add(_divider());
     }
 
-    // ── البنود الأساسية مع ضريبة مرنة ──
+    // ── البنود الأساسية ──
     widgets.add(_compactClauses(contract, blank));
 
     // ── البنود الإضافية ──
     for (final clause in contract.customClauses.where((cl) => cl.isVisible)) {
       widgets.add(_bullet('${clause.titleAr}: ${blank ? '___________' : clause.bodyAr}'));
+    }
+
+    // ── ✅ عرض القوانين حسب نوع العقد ──────────────────────────────────────
+    if (!blank) {
+      final type = contract.type;
+      final laws = SystemConfig.getLawsForType(type);
+      if (laws.isNotEmpty) {
+        widgets.add(_sectionTitle('القوانين الواجبة التطبيق', headerSize * 0.65));
+        for (final law in laws) {
+          widgets.add(_bullet('${law['clause']}'));
+        }
+        widgets.add(_divider());
+      }
     }
 
     // ── التنبيه القانوني ──
@@ -259,12 +272,10 @@ class PdfService {
     return widgets;
   }
 
-  // ─── شخص مدمج ──────────────────────────────────────────────────────────────
-
   pw.Widget _compactPerson(Person p, bool blank, {required String role, required int number, required double share}) {
     String v(String val) => blank ? '___________' : (val.isEmpty ? '...' : val);
     final shareText = share > 0 ? '، حصته: ${ArabicTextHelpers.toArabicDigits(share)} سهماً (من 2400)' : '';
-    final capacityText = _getCapacityText(p);
+    final capacityText = p.hasPowerOfAttorney ? ' (وكيل)' : '';
     final poaText = p.hasPowerOfAttorney ? '، وكيل عن: ${v(p.poaNumber)} (${v(p.poaDate)})' : '';
     final minorText = p.isMinor ? ' (قاصر)' : '';
     final expatText = p.isExpatriate ? ' (مغترب)' : '';
@@ -283,12 +294,6 @@ class PdfService {
     );
   }
 
-  String _getCapacityText(Person p) {
-    if (p.hasPowerOfAttorney) return ' (وكيل)';
-    if (p.isMinor) return ' (قاصر)';
-    return '';
-  }
-
   double _getSellerShare(Contract contract, int index) {
     if (contract.heirs.isNotEmpty && index < contract.heirs.length) {
       return contract.heirs[index].shares.toDouble();
@@ -305,8 +310,6 @@ class PdfService {
     }
     return 0;
   }
-
-  // ─── عقار مدمج ──────────────────────────────────────────────────────────────
 
   pw.Widget _compactProperty(Contract c, bool blank) {
     final p = c.property;
@@ -327,15 +330,12 @@ class PdfService {
     );
   }
 
-  // ─── بنود مدمجة مع ضريبة مرنة ─────────────────────────────────────────────
-
   pw.Widget _compactClauses(Contract c, bool blank) {
     final price = blank ? '___________' : ArabicTextHelpers.toArabicDigits(c.payment.totalPrice);
     final paid = blank ? '___________' : ArabicTextHelpers.toArabicDigits(c.payment.paidAmount);
     final balance = blank ? '___________' : ArabicTextHelpers.toArabicDigits(c.payment.balance);
     final penalty = blank ? '___________' : ArabicTextHelpers.toArabicDigits(c.payment.penaltyAmount);
 
-    // ✅ ضريبة البيوع مرنة (تقرأ من SystemConfig)
     final taxRate = SystemConfig.taxRate;
     final taxAmount = c.payment.totalPrice * taxRate;
     final tax = blank ? '___________' : ArabicTextHelpers.toArabicDigits(taxAmount.round());
@@ -355,8 +355,6 @@ class PdfService {
     );
   }
 
-  // ─── التنبيه القانوني ──────────────────────────────────────────────────────
-
   pw.Widget _legalNotice() => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 4),
     child: pw.Directionality(
@@ -375,8 +373,6 @@ class PdfService {
     ),
   );
 
-  // ─── الورثة ──────────────────────────────────────────────────────────────────
-
   pw.Widget _heirsBlock(Contract c, bool blank) {
     if (c.heirs.isEmpty) return _text('لم يُدخل ورثة.');
     return pw.Column(
@@ -390,8 +386,6 @@ class PdfService {
     );
   }
 
-  // ─── الأحكام القضائية ──────────────────────────────────────────────────────
-
   pw.Widget _judicialBlock(Contract c, bool blank) {
     String v(String val) => blank ? '___________' : (val.isEmpty ? '...' : val);
     return pw.Column(
@@ -404,8 +398,6 @@ class PdfService {
       ],
     );
   }
-
-  // ─── التواقيع ────────────────────────────────────────────────────────────────
 
   pw.Widget _signaturesBlock(Contract c, bool blank) {
     final sellers = c.sellers.isNotEmpty ? c.sellers : [const Person(id: '_')];
@@ -463,8 +455,6 @@ class PdfService {
     );
   }
 
-  // ─── ملاحق ──────────────────────────────────────────────────────────────────
-
   pw.Widget _compactAnnex(ContractAnnex annex, bool blank) => pw.Column(children: [
     pw.SizedBox(height: 4),
     pw.Directionality(
@@ -475,8 +465,6 @@ class PdfService {
       ),
     ),
   ]);
-
-  // ─── دوال مساعدة ─────────────────────────────────────────────────────────────
 
   pw.Widget _sectionTitle(String text, double fontSize) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
