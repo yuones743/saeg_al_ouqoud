@@ -29,8 +29,6 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
   bool _propIsAmiriaLand = false;
   bool _willExceedsThird = false;
   bool _willHasHeirConsent = false;
-
-  // ✅ الوصية الواجبة (المادة 182)
   bool _isObligatoryWill = false;
   bool _hasWill = false;
 
@@ -60,6 +58,7 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
   void _pushDataToProvider() {
     final provider = context.read<ContractProvider>();
 
+    // ✅ المتوفي: استخدام deceased بدلاً من seller
     provider.updateDeceased(
       Person(
         id: 'deceased_1',
@@ -106,7 +105,7 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
       ));
     }
 
-    // ✅ إضافة الوصية الواجبة إلى الملاحظات
+    // ✅ إضافة الوصية الواجبة
     if (_isObligatoryWill || _hasWill) {
       final notes = <String>[];
       if (_isObligatoryWill) notes.add('وصية واجبة (المادة 182) لأولاد الابن المتوفى');
