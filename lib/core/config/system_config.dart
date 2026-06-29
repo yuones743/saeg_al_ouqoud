@@ -24,8 +24,16 @@ class SystemConfig {
   static ContractFontFamily _contractFont = ContractFontFamily.traditionalArabic;
   static ContractPageFormat _pageFormat = ContractPageFormat.a4;
 
+  // ─── إعدادات الطباعة ──────────────────────────────────────────────────────
+  static double _margin = 1.5;           // سم
+  static double _headerFontSize = 16;     // نقطة
+  static double _taxRate = 0.03;          // 3% ضريبة البيوع (قابلة للتعديل)
+
   static ContractFontFamily get contractFont => _contractFont;
   static ContractPageFormat get pageFormat => _pageFormat;
+  static double get margin => _margin;
+  static double get headerFontSize => _headerFontSize;
+  static double get taxRate => _taxRate;
 
   static String get contractFontDisplayName {
     switch (_contractFont) {
@@ -67,6 +75,22 @@ class SystemConfig {
     _savePrefs();
   }
 
+  static void setMargin(double value) {
+    _margin = value.clamp(0.7, 2.5);
+    _savePrefs();
+  }
+
+  static void setHeaderFontSize(double value) {
+    _headerFontSize = value.clamp(12.0, 22.0);
+    _savePrefs();
+  }
+
+  /// ✅ ضريبة البيوع مرنة (0% - 10%)
+  static void setTaxRate(double value) {
+    _taxRate = value.clamp(0.0, 0.10);
+    _savePrefs();
+  }
+
   static Future<void> load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -74,6 +98,9 @@ class SystemConfig {
       final fmtIdx = prefs.getInt('page_format') ?? 0;
       _contractFont = ContractFontFamily.values[fontIdx.clamp(0, ContractFontFamily.values.length - 1)];
       _pageFormat = ContractPageFormat.values[fmtIdx.clamp(0, ContractPageFormat.values.length - 1)];
+      _margin = prefs.getDouble('margin') ?? 1.5;
+      _headerFontSize = prefs.getDouble('header_font_size') ?? 16;
+      _taxRate = prefs.getDouble('tax_rate') ?? 0.03;
     } catch (_) {}
   }
 
@@ -82,6 +109,9 @@ class SystemConfig {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('contract_font', _contractFont.index);
       await prefs.setInt('page_format', _pageFormat.index);
+      await prefs.setDouble('margin', _margin);
+      await prefs.setDouble('header_font_size', _headerFontSize);
+      await prefs.setDouble('tax_rate', _taxRate);
     } catch (_) {}
   }
 }
