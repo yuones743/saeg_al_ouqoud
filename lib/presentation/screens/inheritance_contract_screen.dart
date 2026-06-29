@@ -24,10 +24,16 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
   final _cityCtrl = TextEditingController();
   final _registryCtrl = TextEditingController();
   final _zoneCtrl = TextEditingController();
+
   bool _isKalala = false;
   bool _propIsAmiriaLand = false;
   bool _willExceedsThird = false;
   bool _willHasHeirConsent = false;
+
+  // ✅ الوصية الواجبة (المادة 182)
+  bool _isObligatoryWill = false;
+  bool _hasWill = false;
+
   final List<_HeirEntry> _heirs = [];
 
   @override
@@ -54,7 +60,6 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
   void _pushDataToProvider() {
     final provider = context.read<ContractProvider>();
 
-    // ✅ المتوفي: استخدام deceased بدلاً من seller
     provider.updateDeceased(
       Person(
         id: 'deceased_1',
@@ -100,6 +105,18 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
         relation: entry.relation,
       ));
     }
+
+    // ✅ إضافة الوصية الواجبة إلى الملاحظات
+    if (_isObligatoryWill || _hasWill) {
+      final notes = <String>[];
+      if (_isObligatoryWill) notes.add('وصية واجبة (المادة 182) لأولاد الابن المتوفى');
+      if (_hasWill) notes.add('يوجد وصية في التركة');
+      provider.addClause(ContractClause(
+        id: 'will_notes',
+        titleAr: 'ملاحظات الوصية',
+        bodyAr: notes.join(' - '),
+      ));
+    }
   }
 
   Future<void> _submit() async {
@@ -139,22 +156,14 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
               ArabicTextField(controller: _deceasedMotherCtrl, label: 'اسم الأم'),
               ArabicTextField(controller: _dateCtrl, label: 'تاريخ الوفاة / العقد'),
               ArabicTextField(controller: _cityCtrl, label: 'المدينة', required: true),
-              ArabicSwitch(
-                label: 'حالة كلالة (لا أولاد ولا والدين)',
-                value: _isKalala,
-                onChanged: (v) => setState(() => _isKalala = v),
-              ),
-              ArabicSwitch(
-                label: 'وصية تتجاوز الثلث',
-                value: _willExceedsThird,
-                onChanged: (v) => setState(() => _willExceedsThird = v),
-              ),
-              if (_willExceedsThird)
-                ArabicSwitch(
-                  label: 'موافقة الورثة على الوصية',
-                  value: _willHasHeirConsent,
-                  onChanged: (v) => setState(() => _willHasHeirConsent = v),
-                ),
+              ArabicSwitch(label: 'حالة كلالة (لا أولاد ولا والدين)', value: _isKalala, onChanged: (v) => setState(() => _isKalala = v)),
+              ArabicSwitch(label: 'وصية تتجاوز الثلث', value: _willExceedsThird, onChanged: (v) => setState(() => _willExceedsThird = v)),
+              if (_willExceedsThird) ArabicSwitch(label: 'موافقة الورثة على الوصية', value: _willHasHeirConsent, onChanged: (v) => setState(() => _willHasHeirConsent = v)),
+              const Divider(),
+              const Text('الوصية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const SizedBox(height: 4),
+              ArabicSwitch(label: 'يوجد وصية في التركة', value: _hasWill, onChanged: (v) => setState(() => _hasWill = v)),
+              ArabicSwitch(label: 'وصية واجبة (المادة 182 - لأولاد الابن المتوفى)', value: _isObligatoryWill, onChanged: (v) => setState(() => _isObligatoryWill = v)),
             ],
           ),
           SectionCard(
@@ -163,11 +172,7 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
             children: [
               ArabicTextField(controller: _registryCtrl, label: 'رقم السجل'),
               ArabicTextField(controller: _zoneCtrl, label: 'المنطقة العقارية'),
-              ArabicSwitch(
-                label: 'أرض أميرية (تساوي الذكور والإناث)',
-                value: _propIsAmiriaLand,
-                onChanged: (v) => setState(() => _propIsAmiriaLand = v),
-              ),
+              ArabicSwitch(label: 'أرض أميرية (تساوي الذكور والإناث)', value: _propIsAmiriaLand, onChanged: (v) => setState(() => _propIsAmiriaLand = v)),
             ],
           ),
           SectionCard(
@@ -288,10 +293,7 @@ class _InheritanceContractScreenState extends State<InheritanceContractScreen> {
   Widget _hSw(String label, bool value, ValueChanged<bool> onChanged) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Transform.scale(
-        scale: 0.8,
-        child: Switch(value: value, onChanged: onChanged),
-      ),
+      Transform.scale(scale: 0.8, child: Switch(value: value, onChanged: onChanged)),
       Text(label, style: const TextStyle(fontSize: 11)),
       const SizedBox(width: 4),
     ],
