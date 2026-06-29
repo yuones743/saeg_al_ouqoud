@@ -156,7 +156,8 @@ class _SimpleContractScreenState extends State<SimpleContractScreen> {
   // ─── إدارة البائعين ──────────────────────────────────────────────────────
   void _addSeller() {
     setState(() {
-      _sellers.add(const Person(id: 'seller_${_sellers.length + 1}'));
+      // ✅ تم حذف const
+      _sellers.add(Person(id: 'seller_${_sellers.length + 1}'));
       _sellerNameControllers.add(TextEditingController());
       _sellerFatherControllers.add(TextEditingController());
       _sellerMotherControllers.add(TextEditingController());
@@ -235,7 +236,8 @@ class _SimpleContractScreenState extends State<SimpleContractScreen> {
   // ─── إدارة المشترين ──────────────────────────────────────────────────────
   void _addBuyer() {
     setState(() {
-      _buyers.add(const Person(id: 'buyer_${_buyers.length + 1}'));
+      // ✅ تم حذف const
+      _buyers.add(Person(id: 'buyer_${_buyers.length + 1}'));
       _buyerNameControllers.add(TextEditingController());
       _buyerFatherControllers.add(TextEditingController());
       _buyerMotherControllers.add(TextEditingController());
