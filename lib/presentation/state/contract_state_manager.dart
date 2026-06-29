@@ -20,10 +20,8 @@ class ContractStateManager {
   void updateCity(String city) => _contract = _contract.copyWith(city: city);
   void updateGovernorate(String gov) => _contract = _contract.copyWith(governorate: gov);
 
-  // ─── دعم تعدد الأطراف ──────────────────────────────────────────────────────
   void updateSellers(List<Person> sellers) => _contract = _contract.copyWith(sellers: sellers);
   void updateBuyers(List<Person> buyers) => _contract = _contract.copyWith(buyers: buyers);
-
   void updateSeller(Person seller) => _contract = _contract.copyWith(sellers: [seller]);
   void updateBuyer(Person buyer) => _contract = _contract.copyWith(buyers: [buyer]);
 
